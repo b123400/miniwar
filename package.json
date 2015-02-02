@@ -1,0 +1,10 @@
+{
+  "name": "miniwar",
+  "version": "0.0.0",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.11.1",
+    "socket.io": "^1.3.2"
+  },
+  "devDependencies": {}
+}

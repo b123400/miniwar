@@ -1,0 +1,22 @@
+<div id="status">Loading...</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var urlParams;
+  (window.onpopstate = function () {
+      var match,
+          pl     = /\+/g,  // Regex for replacing addition symbol with a space
+          search = /([^&=]+)=?([^&]*)/g,
+          decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+          query  = window.location.search.substring(1);
+
+      urlParams = {};
+      while (match = search.exec(query))
+        urlParams[decode(match[1])] = decode(match[2]);
+  })();
+
+  var socket = io(':3000/room/'+urlParams['name']);
+  socket.on('start', function(options){
+    document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
+  });
+</script>
