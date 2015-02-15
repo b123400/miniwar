@@ -1,22 +1,60 @@
-<div id="status">Loading...</div>
+<html>
+  <head>
+    <title>miniwar</title>
+  </head>
+  <body>
+    <div id="status">Loading...</div>
+    <div id="stage"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <BR />
+    <button id="deploy">Deploy</button>
+    <script>
+      var urlParams;
+      (window.onpopstate = function () {
+          var match,
+              pl     = /\+/g,  // Regex for replacing addition symbol with a space
+              search = /([^&=]+)=?([^&]*)/g,
+              decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+              query  = window.location.search.substring(1);
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-  var urlParams;
-  (window.onpopstate = function () {
-      var match,
-          pl     = /\+/g,  // Regex for replacing addition symbol with a space
-          search = /([^&=]+)=?([^&]*)/g,
-          decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
-          query  = window.location.search.substring(1);
+          urlParams = {};
+          while (match = search.exec(query))
+            urlParams[decode(match[1])] = decode(match[2]);
+      })();
 
-      urlParams = {};
-      while (match = search.exec(query))
-        urlParams[decode(match[1])] = decode(match[2]);
-  })();
+      var socket = io(':3000/room/'+urlParams['name']);
+      socket.on('start', functio (options) {
+        document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
+      });
+      socket.on('bye', function () {
 
-  var socket = io(':3000/room/'+urlParams['name']);
-  socket.on('start', function(options){
-    document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
-  });
-</script>
+      });
+      socket.on('deploy', function (options) {
+        var div = document.createElement('div');
+        div.style.position = "absolute";
+        div.style.left = "0px";
+        div.style.top = "0px";
+        div.style.width = "50px";
+        div.style.height = "50px";
+        div.style.backgroundColor = options.color;
+        var stage = document.getElementById('stage');
+        stage.appendChild(div);
+
+        var start = Date.now();
+        var timer = setInterval(function() {
+          var now = Date.now(), timePassed = now - start;
+          if (timePassed > 5000) {
+            clearInterval(timer);
+            stage.removeChild(div);
+            return;
+          }
+          div.style.left = timePassed*0.1 + "px";
+        }, 10);
+      });
+
+      document.getElementById('deploy').addEventListener('click', function () {
+        socket.emit("deploy");
+      });
+    </script>
+  </body>
+</html>
