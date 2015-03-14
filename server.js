@@ -11,10 +11,10 @@ io.on('connection', function(socket){
 Lobby(io);
 
 app.get('/', function(req, res){
-  res.redirect('/index.html')
+  res.redirect('/lobby.html')
 });
 
-app.use(express.static('static'));
+app.use(express.static('client'));
 
 http.listen(3000, function(){
   console.log('listening on *:3000');
