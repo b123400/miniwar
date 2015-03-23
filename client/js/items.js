@@ -20,6 +20,25 @@ Item.prototype.getImage = function () {
   return 'img/bunny.png';
 };
 
+Item.prototype.collide = function (anotherItem) {
+  var r1 = {
+    left : this.location.x,
+    top : this.location.y,
+    right : this.location.x + this.size.width,
+    bottom : this.location.y + this.size.height
+  };
+  var r2 = {
+    left : anotherItem.location.x,
+    top : anotherItem.location.y,
+    right : anotherItem.location.x + anotherItem.size.width,
+    bottom : anotherItem.location.y + anotherItem.size.height
+  };
+  return !(r2.left > r1.right || 
+           r2.right < r1.left || 
+           r2.top > r1.bottom ||
+           r2.bottom < r1.top);
+}
+
 Item.prototype.animateSprite = function () {
   // default = do nothing
 };
@@ -37,6 +56,7 @@ var Soldier = function(options) {
   Item.apply(this, arguments);
   this.speed = options.speed; // pixel per second
   this.lastMove = Date.now();
+  this.lastAttack = Date.now();
   this.target = Player.fromId(options.target).castle;
 };
 
@@ -56,8 +76,23 @@ Soldier.prototype.animateSprite = function () {
     } else if (percentage > 1) {
       percentage = 1;
     }
-    _this.location.x += deltaX * percentage;
-    _this.location.y += deltaY * percentage;
+
+    var targetLocation = {
+      x : _this.location.x + deltaX * percentage,
+      y : _this.location.y + deltaY * percentage
+    };
+
+    var crashingItems = Stage.collisionItemsForItem(_this, targetLocation, _this.size);
+    if (!crashingItems.length) {
+      _this.location = targetLocation;
+    } else {
+      if (Date.now() - _this.lastAttack > 1000) {
+        // yo lets attack!
+        crashingItems.forEach(function (item) {
+          _this.attack(item);
+        });
+      }
+    }
 
     var sprite = _this.getSprite();
     sprite.x = _this.location.x;
@@ -69,6 +104,11 @@ Soldier.prototype.animateSprite = function () {
     }
   }
   animate();
+}
+
+Soldier.prototype.attack = function (anotherItem) {
+  Socket.attackItem(this, anotherItem, 10);
+  this.lastAttack = Date.now();
 }
 
 var Wall = function () {

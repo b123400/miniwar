@@ -14,6 +14,18 @@ function setupStage () {
       renderer.render(stage);
       requestAnimationFrame(animate);
   }
+};
+
+var Stage = {
+  allItems : [],
+
+  collisionItemsForItem : function (item, location, size) {
+    return this.allItems.filter(function(thisItem){
+      if (item == thisItem) return false; // don't count self
+      // return true if crashing
+      return item.collide(thisItem);
+    });
+  }
 }
 
 function itemFromOptions (options) {
@@ -30,6 +42,7 @@ function itemFromOptions (options) {
 function addItem (options) {
   var item = (options instanceof Item) ? options : itemFromOptions(options);
   stage.addChild(item.getSprite());
+  Stage.allItems.push(item);
   item.animateSprite();
 };
 
@@ -83,6 +96,17 @@ socket.on('deploy', function (options) {
   addItem(options);
 });
 
+socket.on('attack', function (options) {
+  for (var i = Stage.allItems.length - 1; i >= 0; i--) {
+    var thisItem = Stage.allItems[i];
+    if (thisItem.uuid === options.targetID) {
+      thisItem.hp -= options.damage;
+      console.log("item "+thisItem.uuid+" is attacked, hp -"+options.damage);
+      break;
+    }
+  };
+});
+
 document.getElementById('deploy').addEventListener('click', function () {
   socket.emit("deploy", {
     type : "soldier",
@@ -94,7 +118,17 @@ document.getElementById('deploy').addEventListener('click', function () {
       width : 50,
       height: 50
     },
-    speed : 10,
+    speed : 50,
     target : Player.getRandomEnemy().id
   });
 });
+
+var Socket = {
+  attackItem : function (attacker, otherItem, damage) {
+    socket.emit("attack", {
+      itemID: attacker.uuid,
+      targetID: otherItem.uuid,
+      damage: damage
+    });
+  }
+}

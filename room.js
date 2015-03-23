@@ -54,6 +54,10 @@ var Room = function (name, lobby, io) {
       options.color = color;
       io.emit('deploy', options);
     });
+
+    socket.on('attack', function (options) {
+      io.emit('attack', options);
+    });
   });
 }
 
