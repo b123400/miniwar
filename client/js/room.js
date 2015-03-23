@@ -28,7 +28,7 @@ function itemFromOptions (options) {
 }
 
 function addItem (options) {
-  var item = itemFromOptions(options);
+  var item = (options instanceof Item) ? options : itemFromOptions(options);
   stage.addChild(item.getSprite());
   item.animateSprite();
 };
@@ -70,6 +70,9 @@ socket.on('start', function (options) {
     }
   }
   setupStage();
+  for (var key in Player.allPlayers) {
+    addItem(Player.allPlayers[key].castle); // add to stage;
+  }
 });
 
 socket.on('end', function () {
@@ -84,8 +87,8 @@ document.getElementById('deploy').addEventListener('click', function () {
   socket.emit("deploy", {
     type : "soldier",
     location : {
-      x : 0,
-      y : 200
+      x : Player.me.castle.location.x,
+      y : Player.me.castle.location.y + 100
     },
     size : {
       width : 50,

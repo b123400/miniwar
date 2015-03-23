@@ -8,7 +8,12 @@ var Item = function(options) {
 
 Item.prototype.getSprite = function () {
   if (this.sprite) return this.sprite;
-  return this.sprite = new PIXI.Sprite.fromImage(this.getImage());
+  this.sprite = new PIXI.Sprite.fromImage(this.getImage());
+  this.sprite.x = this.location.x;
+  this.sprite.y = this.location.y;
+  this.sprite.width = this.size.width;
+  this.sprite.height = this.size.height;
+  return this.sprite;
 };
 
 Item.prototype.getImage = function () {
@@ -23,6 +28,10 @@ var Castle = function (options) {
   Item.apply(this,arguments);
 }
 Castle.prototype = Object.create(Item.prototype);
+
+Castle.prototype.getImage = function () {
+  return 'img/castle.png';
+}
 
 var Soldier = function(options) {
   Item.apply(this, arguments);
