@@ -83,6 +83,8 @@ Soldier.prototype.animateSprite = function () {
     };
 
     var crashingItems = Stage.collisionItemsForItem(_this, targetLocation, _this.size);
+    crashingItems = crashingItems.filter(_this.shouldAttackItem);
+
     if (!crashingItems.length) {
       _this.location = targetLocation;
     } else {
@@ -104,6 +106,10 @@ Soldier.prototype.animateSprite = function () {
     }
   }
   animate();
+}
+
+Soldier.prototype.shouldAttackItem = function (item) {
+  return item instanceof Castle;
 }
 
 Soldier.prototype.attack = function (anotherItem) {

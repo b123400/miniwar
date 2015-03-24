@@ -101,7 +101,30 @@ socket.on('attack', function (options) {
     var thisItem = Stage.allItems[i];
     if (thisItem.uuid === options.targetID) {
       thisItem.hp -= options.damage;
-      console.log("item "+thisItem.uuid+" is attacked, hp -"+options.damage);
+
+      var damageText = new PIXI.Text("-"+options.damage);
+      damageText.x = thisItem.location.x;
+      damageText.y = thisItem.location.y;
+      damageText.font = 'bold 20px Arial';
+      damageText.width = 200;
+      damageText.height = 80;
+      stage.addChild(damageText);
+
+      var start = Date.now();
+      var duration = 500;
+      function animate() {
+        var percentage = (Date.now()-start)/duration;
+        if (percentage < 1) {
+          requestAnimationFrame(animate);
+          damageText.y = thisItem.location.y - percentage * 50;
+          damageText.alpha = 1-percentage;
+        } else {
+          stage.removeChild(damageText);
+        }
+      }
+
+      requestAnimationFrame(animate);
+
       break;
     }
   };

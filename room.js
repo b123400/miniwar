@@ -1,3 +1,5 @@
+var uuid = require('node-uuid');
+
 var Room = function (name, lobby, io) {
   this.name = name;
   this.currentPlayerCount = 0;
@@ -39,7 +41,7 @@ var Room = function (name, lobby, io) {
     socket.on('disconnect', function () {
       _this.sockets.splice(_this.sockets.indexOf(socket), 1); // remove this socket
       if (_this.sockets.length == 0) {
-        io.emit('bye');
+        io.emit('end');
         lobby.removeRoom(_this);
       }
     });
@@ -55,16 +57,20 @@ var Room = function (name, lobby, io) {
       io.emit('deploy', options);
     });
 
+    var lastAttack = null;
     socket.on('attack', function (options) {
-      io.emit('attack', options);
+      if (lastAttack == null || Date.now() - lastAttack > 1000) {
+        io.emit('attack', options);
+        lastAttack = Date.now();
+      }
     });
   });
 }
 
 Room.prototype.createItem = function (options, ownerSocket) {
-  var uuid = String(Math.random());
-  this.items[uuid] = options;
-  options.uuid = uuid;
+  var thisID = uuid.v4();
+  this.items[thisID] = options;
+  options.uuid = thisID;
   options.owner = ownerSocket.id;
   return options;
 }
