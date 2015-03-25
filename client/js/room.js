@@ -1,23 +1,52 @@
-
-var renderer, stage;
-function setupStage () {
-  // You can use either PIXI.WebGLRenderer or PIXI.CanvasRenderer
-  renderer = new PIXI.autoDetectRecommendedRenderer(800, 600);
-
-  document.getElementById("stage").appendChild(renderer.view);
-
-  stage = new PIXI.Stage(0xffffff);
-
-  requestAnimationFrame(animate);
-
-  function animate() {
-      renderer.render(stage);
-      requestAnimationFrame(animate);
-  }
-};
-
 var Stage = {
+  stage : null,
+  renderer : null,
   allItems : [],
+
+  setup : function () {
+    // You can use either PIXI.WebGLRenderer or PIXI.CanvasRenderer
+    this.renderer = new PIXI.autoDetectRecommendedRenderer(800, 600);
+
+    document.getElementById("stage").appendChild(this.renderer.view);
+
+    this.stage = new PIXI.Stage(0xffffff);
+
+    requestAnimationFrame(animate);
+
+    var _this = this;
+    function animate() {
+        _this.renderer.render(_this.stage);
+        requestAnimationFrame(animate);
+    }
+  },
+
+  // should be called only by socket
+  addItem : function (options) {
+    var item = (options instanceof Item) ? options : this.itemFromOptions(options);
+    this.stage.addChild(item.getSprite());
+    Stage.allItems.push(item);
+    item.animateSprite();
+  },
+
+  removeItem : function (item) {
+    var _this = this;
+    var index = Stage.allItems.indexOf(item);
+    if (index >= 0) {
+      Stage.allItems.splice(index, 1);
+    }
+    return function(){
+      _this.stage.removeChild(item.getSprite());
+    };
+  },
+
+  findItemById : function (targetID) {
+    for (var i = Stage.allItems.length - 1; i >= 0; i--) {
+      var thisItem = Stage.allItems[i];
+      if (thisItem.uuid === targetID) {
+        return thisItem;
+      }
+    }
+  },
 
   collisionItemsForItem : function (item, location, size) {
     return this.allItems.filter(function(thisItem){
@@ -25,113 +54,88 @@ var Stage = {
       // return true if crashing
       return item.collide(thisItem);
     });
-  }
-}
+  },
 
-function itemFromOptions (options) {
-  switch (options.type) {
-    case "soldier":
-      return new Soldier(options);
-    case "castle":
-      return new Castle(options);
-      break;
-  }
-  return undefined;
-}
-
-function addItem (options) {
-  var item = (options instanceof Item) ? options : itemFromOptions(options);
-  stage.addChild(item.getSprite());
-  Stage.allItems.push(item);
-  item.animateSprite();
-};
-
-var Player = function (id, castle) {
-  this.id = id;
-  this.castle = castle;
-  Player.allPlayers[id] = this;
-};
-
-Player.me = undefined;
-Player.allPlayers = {};
-Player.fromId = function (id) {
-  return Player.allPlayers[id];
-}
-Player.getEnemies = function () {
-  return Player.enemies || (Player.enemies = Object.keys(Player.allPlayers)
-    .map(function (key) {
-      return Player.allPlayers[key];
-    })
-    .filter(function (player) {
-      return player != Player.me;
-    }));
-}
-Player.getRandomEnemy = function () {
-  var enemies = this.getEnemies();
-  return enemies[Math.floor(Math.random()*enemies.length)];
-}
-
-var socket = io(':3000/room/'+urlParams['name']);
-socket.on('start', function (options) {
-  document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
-
-  for (var id in options.targets) {
-    var castle = itemFromOptions(options.targets[id]);
-    var newPlayer = new Player(id, castle);
-    if (newPlayer.id == options.playerID) {
-      Player.me = newPlayer;
+  itemFromOptions : function (options) {
+    switch (options.type) {
+      case "soldier":
+        return new Soldier(options);
+      case "castle":
+        return new Castle(options);
+        break;
     }
+    return undefined;
   }
-  setupStage();
-  for (var key in Player.allPlayers) {
-    addItem(Player.allPlayers[key].castle); // add to stage;
-  }
-});
+};
 
-socket.on('end', function () {
+var Socket = (function(){
+  var socket;
+  return {
+    setup : function (_socket) {
+      socket = _socket;
+      socket.on('start', function (options) {
+        document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
 
-});
-
-socket.on('deploy', function (options) {
-  addItem(options);
-});
-
-socket.on('attack', function (options) {
-  for (var i = Stage.allItems.length - 1; i >= 0; i--) {
-    var thisItem = Stage.allItems[i];
-    if (thisItem.uuid === options.targetID) {
-      thisItem.hp -= options.damage;
-
-      var damageText = new PIXI.Text("-"+options.damage);
-      damageText.x = thisItem.location.x;
-      damageText.y = thisItem.location.y;
-      damageText.font = 'bold 20px Arial';
-      damageText.width = 200;
-      damageText.height = 80;
-      stage.addChild(damageText);
-
-      var start = Date.now();
-      var duration = 500;
-      function animate() {
-        var percentage = (Date.now()-start)/duration;
-        if (percentage < 1) {
-          requestAnimationFrame(animate);
-          damageText.y = thisItem.location.y - percentage * 50;
-          damageText.alpha = 1-percentage;
-        } else {
-          stage.removeChild(damageText);
+        for (var id in options.targets) {
+          var castle = Stage.itemFromOptions(options.targets[id]);
+          var newPlayer = new Player(id, castle);
+          if (newPlayer.id == options.playerID) {
+            Player.me = newPlayer;
+          }
         }
-      }
 
-      requestAnimationFrame(animate);
+        for (var key in Player.allPlayers) {
+          Stage.addItem(Player.allPlayers[key].castle); // add to stage;
+        }
 
-      break;
+      });
+
+      socket.on('end', function () {
+
+      });
+
+      socket.on('deploy', function (options) {
+        Stage.addItem(options);
+      });
+
+      socket.on('attack', function (options) {
+        var thisItem = Stage.findItemById(options.targetID);
+        thisItem.applyDamage(options.damage);
+      });
+
+      socket.on("destroy", function (options) {
+        var thisItem = Stage.findItemById(options.itemID);
+        var removeFromStage = Stage.removeItem(thisItem);
+        thisItem.destroy(function(){
+          removeFromStage();
+        });
+      });
+    },
+
+    deployItem : function (options) {
+      socket.emit("deploy", options);
+    },
+
+    attackItem : function (attacker, otherItem, damage) {
+      // console.log("attacker ", attacker.uuid, " target ", otherItem.uuid);
+      socket.emit("attack", {
+        itemID: attacker.uuid,
+        targetID: otherItem.uuid,
+        damage: damage
+      });
     }
   };
-});
+})();
 
+(function(){
+  var socket = io(':3000/room/'+urlParams['name']);
+  Stage.setup();
+  Socket.setup(socket);
+})();
+
+// control, should moves to somewhere else later
 document.getElementById('deploy').addEventListener('click', function () {
-  socket.emit("deploy", {
+  Socket.deployItem({
     type : "soldier",
     location : {
       x : Player.me.castle.location.x,
@@ -142,16 +146,7 @@ document.getElementById('deploy').addEventListener('click', function () {
       height: 50
     },
     speed : 50,
+    hp : 100,
     target : Player.getRandomEnemy().id
   });
 });
-
-var Socket = {
-  attackItem : function (attacker, otherItem, damage) {
-    socket.emit("attack", {
-      itemID: attacker.uuid,
-      targetID: otherItem.uuid,
-      damage: damage
-    });
-  }
-}

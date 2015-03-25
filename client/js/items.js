@@ -39,6 +39,54 @@ Item.prototype.collide = function (anotherItem) {
            r2.bottom < r1.top);
 }
 
+Item.prototype.applyDamage = function (damage) {
+  this.hp -= damage;
+  var damageText = new PIXI.Text("-"+damage);
+  damageText.x = 0;
+  damageText.y = 0;
+  damageText.font = 'bold 20px Arial';
+  damageText.width = 200;
+  damageText.height = 80;
+  this.getSprite().addChild(damageText);
+
+  var start = Date.now();
+  var duration = 500;
+  var _this = this;
+  function animate() {
+    var percentage = (Date.now()-start)/duration;
+    if (percentage < 1) {
+      requestAnimationFrame(animate);
+      damageText.y = - percentage * 50;
+      damageText.alpha = 1-percentage;
+    } else {
+      _this.getSprite().removeChild(damageText);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+Item.prototype.destroy  = function (callback) {
+  this.hp = 0; // In case if the server wants to destroy me, I obey
+
+  var start = Date.now();
+  var duration = 500;
+  var _this = this;
+  function animate() {
+    var percentage = (Date.now() - start) / duration;
+
+    var sprite = _this.getSprite();
+    sprite.scale.x = sprite.scale.y = 1 + 0.5 * percentage;
+    sprite.alpha = 1 - percentage;
+    if (percentage > 1) {
+      callback();
+    } else {
+      requestAnimationFrame(animate);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
 Item.prototype.animateSprite = function () {
   // default = do nothing
 };
@@ -65,6 +113,8 @@ Soldier.prototype = Object.create(Item.prototype);
 Soldier.prototype.animateSprite = function () {
   var _this = this;
   function animate () {
+    if (_this.hp <= 0) return; // if this thing is destroyed, stop
+
     var targetLocation = _this.target.location;
     var deltaX = targetLocation.x - _this.location.x;
     var deltaY = targetLocation.y - _this.location.y;
@@ -88,7 +138,7 @@ Soldier.prototype.animateSprite = function () {
     if (!crashingItems.length) {
       _this.location = targetLocation;
     } else {
-      if (Date.now() - _this.lastAttack > 1000) {
+      if (_this.owner === Player.me && Date.now() - _this.lastAttack > 1000) {
         // yo lets attack!
         crashingItems.forEach(function (item) {
           _this.attack(item);
@@ -101,9 +151,7 @@ Soldier.prototype.animateSprite = function () {
     sprite.y = _this.location.y;
     _this.lastMove = Date.now();
 
-    if (percentage < 1) {
-      requestAnimationFrame(animate);
-    }
+    requestAnimationFrame(animate);
   }
   animate();
 }
