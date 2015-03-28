@@ -165,6 +165,30 @@ Soldier.prototype.attack = function (anotherItem) {
   this.lastAttack = Date.now();
 }
 
+Soldier.createButtonSprite = function () {
+  var button = new PIXI.Sprite.fromImage("img/bunny.png");
+  button.buttonMode = true;
+  button.interactive = true;
+  return button;
+}
+
+Soldier.objectForDeploy = function () {
+  return {
+    type : "soldier",
+    location : {
+      x : Player.me.castle.location.x,
+      y : Player.me.castle.location.y + 100
+    },
+    size : {
+      width : 50,
+      height: 50
+    },
+    speed : 50,
+    hp : 100,
+    target : Player.getRandomEnemy().id
+  };
+}
+
 var Wall = function () {
   Item.apply(this, arguments);
 }

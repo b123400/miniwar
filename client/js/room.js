@@ -1,21 +1,42 @@
 var Stage = {
-  stage : null,
+  baseStage : null, // for buttons
+  mainStage : null, // for items
   renderer : null,
   allItems : [],
 
   setup : function () {
     // You can use either PIXI.WebGLRenderer or PIXI.CanvasRenderer
-    this.renderer = new PIXI.autoDetectRecommendedRenderer(800, 600);
+    this.renderer = new PIXI.autoDetectRecommendedRenderer(800, 700);
 
     document.getElementById("stage").appendChild(this.renderer.view);
+    this.baseStage = new PIXI.Stage(0xffffff);
 
-    this.stage = new PIXI.Stage(0xffffff);
+    this.mainStage = new PIXI.Stage(0xffffff);
+    this.mainStage.x = 0;
+    this.mainStage.y = 0;
+    this.mainStage.width = 800;
+    this.mainStage.height = 600;
+    this.baseStage.addChild(this.mainStage);
+
+    var itemsWithButton = [Soldier],
+        lastX = 0,
+        _this = this;
+
+    itemsWithButton.forEach(function (itemClass) {
+      var button = itemClass.createButtonSprite();
+      button.x = lastX;
+      button.y = 600;
+      lastX += button.width;
+      button.mouseup = function() {
+        Socket.deployItem(itemClass.objectForDeploy());
+      }
+      _this.mainStage.addChild(button);
+    });
 
     requestAnimationFrame(animate);
 
-    var _this = this;
     function animate() {
-        _this.renderer.render(_this.stage);
+        _this.renderer.render(_this.mainStage);
         requestAnimationFrame(animate);
     }
   },
@@ -23,7 +44,7 @@ var Stage = {
   // should be called only by socket
   addItem : function (options) {
     var item = (options instanceof Item) ? options : this.itemFromOptions(options);
-    this.stage.addChild(item.getSprite());
+    this.mainStage.addChild(item.getSprite());
     Stage.allItems.push(item);
     item.animateSprite();
   },
@@ -35,7 +56,7 @@ var Stage = {
       Stage.allItems.splice(index, 1);
     }
     return function(){
-      _this.stage.removeChild(item.getSprite());
+      _this.mainStage.removeChild(item.getSprite());
     };
   },
 
@@ -132,21 +153,3 @@ var Socket = (function(){
   Stage.setup();
   Socket.setup(socket);
 })();
-
-// control, should moves to somewhere else later
-document.getElementById('deploy').addEventListener('click', function () {
-  Socket.deployItem({
-    type : "soldier",
-    location : {
-      x : Player.me.castle.location.x,
-      y : Player.me.castle.location.y + 100
-    },
-    size : {
-      width : 50,
-      height: 50
-    },
-    speed : 50,
-    hp : 100,
-    target : Player.getRandomEnemy().id
-  });
-});
