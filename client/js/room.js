@@ -20,7 +20,8 @@ var Stage = {
 
     var itemsWithButton = [Soldier],
         lastX = 0,
-        _this = this;
+        _this = this,
+        selectedItemClass = null;
 
     itemsWithButton.forEach(function (itemClass) {
       var button = itemClass.createButtonSprite();
@@ -28,15 +29,24 @@ var Stage = {
       button.y = 600;
       lastX += button.width;
       button.mouseup = function() {
-        Socket.deployItem(itemClass.objectForDeploy());
+        selectedItemClass = itemClass;
       }
-      _this.mainStage.addChild(button);
+      _this.baseStage.addChild(button);
     });
+
+    this.mainStage.mouseup = function (event) {
+      if (!selectedItemClass) return;
+      var options = selectedItemClass.objectForDeploy();
+      var position = event.getLocalPosition(_this.mainStage);
+      options.location.x = position.x;
+      options.location.y = position.y;
+      Socket.deployItem(options);
+    }
 
     requestAnimationFrame(animate);
 
     function animate() {
-        _this.renderer.render(_this.mainStage);
+        _this.renderer.render(_this.baseStage);
         requestAnimationFrame(animate);
     }
   },
