@@ -18,7 +18,7 @@ var Stage = {
     this.mainStage.height = 600;
     this.baseStage.addChild(this.mainStage);
 
-    var itemsWithButton = [Soldier],
+    var itemsWithButton = [Soldier, Wall],
         lastX = 0,
         _this = this,
         selectedItemClass = null;
@@ -27,6 +27,7 @@ var Stage = {
       var button = itemClass.createButtonSprite();
       button.x = lastX;
       button.y = 600;
+      button.width = 50;
       lastX += button.width;
       button.mouseup = function() {
         selectedItemClass = itemClass;
@@ -91,6 +92,8 @@ var Stage = {
     switch (options.type) {
       case "soldier":
         return new Soldier(options);
+      case "wall":
+        return new Wall(options);
       case "castle":
         return new Castle(options);
         break;

@@ -157,7 +157,7 @@ Soldier.prototype.animateSprite = function () {
 }
 
 Soldier.prototype.shouldAttackItem = function (item) {
-  return item instanceof Castle;
+  return !(item instanceof Soldier);
 }
 
 Soldier.prototype.attack = function (anotherItem) {
@@ -194,3 +194,30 @@ var Wall = function () {
 }
 
 Wall.prototype = Object.create(Item.prototype);
+
+Wall.prototype.getImage = function () {
+  return 'img/castle.png';
+};
+
+Wall.objectForDeploy = function () {
+  return {
+    type : "wall",
+    location : {
+      x : 0,
+      y : 0
+    },
+    size : {
+      width : 50,
+      height: 50
+    },
+    speed : 50,
+    hp : 100
+  };
+};
+
+Wall.createButtonSprite = function () {
+  var button = new PIXI.Sprite.fromImage("img/castle.png");
+  button.buttonMode = true;
+  button.interactive = true;
+  return button;
+}
