@@ -18,7 +18,7 @@ var Stage = {
     this.mainStage.height = 600;
     this.baseStage.addChild(this.mainStage);
 
-    var itemsWithButton = [Soldier, Wall, siuming],
+    var itemsWithButton = [Soldier, Wall, 小明],
         lastX = 0,
         _this = this,
         selectedItemClass = null;
@@ -97,7 +97,7 @@ var Stage = {
       case "castle":
         return new Castle(options);
 	  case "siuming":
-		return new siuming(options);
+		return new 小明(options);
         break;
     }
     return undefined;

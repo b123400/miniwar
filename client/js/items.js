@@ -192,24 +192,24 @@ Soldier.objectForDeploy = function () {
 }
 
 /*siuming*/
-var siuming = function(options) {
+var 小明 = function(options) {
   Soldier.apply(this, arguments);
 };
 
-siuming.prototype = Object.create(Soldier.prototype);
+小明.prototype = Object.create(Soldier.prototype);
 
-siuming.prototype.shouldAttackItem = function (item) {
-  return !(item instanceof siuming); // attack every thing except siuming
+小明.prototype.shouldAttackItem = function (item) {
+  return !(item instanceof 小明); // attack every thing except 小明
 }
 
-siuming.createButtonSprite = function () {
+小明.createButtonSprite = function () {
   var button = new PIXI.Sprite.fromImage("img/siuming.png");
   button.buttonMode = true;
   button.interactive = true;
   return button;
 }
 
-siuming.objectForDeploy = function () {
+小明.objectForDeploy = function () {
   return {
     type : "siuming",
     location : {
@@ -226,7 +226,7 @@ siuming.objectForDeploy = function () {
   };
 }
 
-siuming.prototype.getImage = function () {
+小明.prototype.getImage = function () {
   return 'img/siuming.png';
 };
 
