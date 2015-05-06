@@ -159,7 +159,9 @@ Soldier.prototype.animateSprite = function () {
 }
 
 Soldier.prototype.shouldAttackItem = function (item) {
-  return !(item instanceof Soldier);
+  if (item.owner == Player.me) return false;
+  if (item instanceof Soldier) return false;
+  return true;
 }
 
 Soldier.prototype.attack = function (anotherItem) {
@@ -197,10 +199,6 @@ var 小明 = function(options) {
 };
 
 小明.prototype = Object.create(Soldier.prototype);
-
-小明.prototype.shouldAttackItem = function (item) {
-  return !(item instanceof 小明); // attack every thing except 小明
-}
 
 小明.createButtonSprite = function () {
   var button = new PIXI.Sprite.fromImage("img/siuming.png");
