@@ -17,7 +17,7 @@ Item.prototype.getSprite = function () {
 };
 
 Item.prototype.getImage = function () {
-  return 'img/bunny.png';
+  return 'img/soldier.png';
 
   
 };
@@ -168,7 +168,7 @@ Soldier.prototype.attack = function (anotherItem) {
 }
 
 Soldier.createButtonSprite = function () {
-  var button = new PIXI.Sprite.fromImage("img/bunny.png");
+  var button = new PIXI.Sprite.fromImage("img/soldier.png");
   button.buttonMode = true;
   button.interactive = true;
   return button;
@@ -239,7 +239,7 @@ var Wall = function () {
 Wall.prototype = Object.create(Item.prototype);
 
 Wall.prototype.getImage = function () {
-  return 'img/castle.png';
+  return 'img/wall.png';
 };
 
 Wall.objectForDeploy = function () {
@@ -259,7 +259,7 @@ Wall.objectForDeploy = function () {
 };
 
 Wall.createButtonSprite = function () {
-  var button = new PIXI.Sprite.fromImage("img/castle.png");
+  var button = new PIXI.Sprite.fromImage("img/wall.png");
   button.buttonMode = true;
   button.interactive = true;
   return button;

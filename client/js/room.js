@@ -11,6 +11,11 @@ var Stage = {
     document.getElementById("stage").appendChild(this.renderer.view);
     this.baseStage = new PIXI.Stage(0xffffff);
 
+    var background = new PIXI.Sprite.fromImage("img/background.png");
+    background.width = this.renderer.width;
+    background.height = this.renderer.height;
+    this.baseStage.addChild(background);
+
     this.mainStage = new PIXI.Stage(0xffffff);
     this.mainStage.x = 0;
     this.mainStage.y = 0;
