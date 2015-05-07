@@ -3,6 +3,7 @@ var Stage = {
   mainStage : null, // for items
   renderer : null,
   allItems : [],
+  money : 0,
 
   setup : function () {
     // You can use either PIXI.WebGLRenderer or PIXI.CanvasRenderer
@@ -22,6 +23,17 @@ var Stage = {
     this.mainStage.width = 800;
     this.mainStage.height = 600;
     this.baseStage.addChild(this.mainStage);
+
+    // money
+    this.moneyLabel = new PIXI.Text("$0", {fill:'yellow'});
+    this.moneyLabel.x = 0;
+    this.moneyLabel.y = 660;
+    this.moneyLabel.font = 'bold 20px Arial';
+    this.moneyLabel.width = 200;
+    this.moneyLabel.height = 80;
+    this.baseStage.addChild(this.moneyLabel);
+
+    // deploy buttons
 
     var itemsWithButton = [Soldier, Wall, 小明],
         lastX = 0,
@@ -46,8 +58,22 @@ var Stage = {
       var position = event.getLocalPosition(_this.mainStage);
       options.location.x = position.x;
       options.location.y = position.y;
+
+      var price = prices[options.type];
+      if (price === undefined || _this.money < price) {
+        return;
+      }
+      // ok go
+      _this.money -= price;
+      _this.redrawMoneyLabel();
       Socket.deployItem(options);
-    }
+    };
+
+    var prices = {
+      "soldier" : 3,
+      "siuming" : 10,
+      "wall" : 3
+    };
 
     requestAnimationFrame(animate);
 
@@ -55,6 +81,10 @@ var Stage = {
         _this.renderer.render(_this.baseStage);
         requestAnimationFrame(animate);
     }
+  },
+
+  redrawMoneyLabel : function () {
+    this.moneyLabel.setText("$"+this.money);
   },
 
   // should be called only by socket
@@ -101,8 +131,8 @@ var Stage = {
         return new Wall(options);
       case "castle":
         return new Castle(options);
-	  case "siuming":
-		return new 小明(options);
+  	  case "siuming":
+    		return new 小明(options);
         break;
     }
     return undefined;
@@ -116,6 +146,11 @@ var Socket = (function(){
       socket = _socket;
       socket.on('start', function (options) {
         document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
+
+        setInterval(function () {
+          Stage.money += 5;
+          Stage.redrawMoneyLabel();
+        }, 1000);
 
         for (var id in options.targets) {
           var castle = Stage.itemFromOptions(options.targets[id]);

@@ -8,9 +8,20 @@ var Room = function (name, lobby, io) {
   this.items = {};
   this.io = io;
 
+  var prices = {
+    "soldier" : 3,
+    "siuming" : 10,
+    "wall" : 3
+  };
+
   var _this = this;
   io.on('connection', function(socket){
     _this.sockets.push(socket);
+    socket.money = {
+      lastConfirm : null,
+      lastValue : 0,
+      increaseRate : 5, // per second
+    };
 
     // When there is enough players
     if (_this.playerCount == _this.sockets.length) {
@@ -33,6 +44,7 @@ var Room = function (name, lobby, io) {
       }
       for (var i = _this.sockets.length - 1; i >= 0; i--) {
         var thisSocket = _this.sockets[i];
+        thisSocket.money.lastConfirm = Date.now();
         thisSocket.emit("start",{
           playerCount : _this.sockets.length,
           playerID: thisSocket.id,
@@ -53,11 +65,20 @@ var Room = function (name, lobby, io) {
 
 
     // This player wants to deploy something
-    var lastDeploy = null;
+    // var lastDeploy = null;
     socket.on('deploy', function (options) {
       var now = Date.now();
-      if (now - lastDeploy < 3000) return; // prevent deploy within 3 seconds
-      lastDeploy = now;
+      // if (now - lastDeploy < 3000) return; // prevent deploy within 3 seconds
+
+      var currentMoney = socket.money.lastValue + (Date.now() - socket.money.lastConfirm)/1000 * socket.money.increaseRate;
+      var price = prices[options.type];
+      if (price === undefined) return; // not recognized type
+      if (price > currentMoney) return; // not enough money
+
+      // if arrived here, can deploy
+      socket.money.lastValue = currentMoney - price;
+      socket.money.lastConfirm = Date.now();
+      // lastDeploy = now;
 
       options = _this.createItem(options, socket);
 

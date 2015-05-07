@@ -49,7 +49,6 @@ Item.prototype.redrawBloodBar = function () {
   bloodBar.beginFill(0xff0000, 1);
   bloodBar.drawRect(0, 0, width, 5);
   bloodBar.endFill();
-  console.log('redrawn', width);
 }
 
 Item.prototype.getImage = function () {
