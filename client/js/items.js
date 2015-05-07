@@ -1,25 +1,59 @@
 var Item = function(options) {
   this.uuid = options.uuid;
   this.hp = options.hp;
+  this.fullHp = this.hp;
   this.location = options.location;
-  this.size = options.size;
+  this.size = {
+    width : 42,
+    height: 49
+  };
   this.owner = Player.fromId(options.owner);
 };
 
 Item.prototype.getSprite = function () {
   if (this.sprite) return this.sprite;
+
   this.sprite = new PIXI.Sprite.fromImage(this.getImage());
   this.sprite.x = this.location.x;
   this.sprite.y = this.location.y;
   this.sprite.width = this.size.width;
   this.sprite.height = this.size.height;
+
+  this.sprite.addChild(this.getBloodBar());
+
   return this.sprite;
 };
 
+Item.prototype.getBloodBar = function() {
+  if (!this.bloodBar) {
+    this.bloodBar = new PIXI.Graphics();
+    this.bloodBar.x = 0;
+    this.bloodBar.y = -10;
+    this.redrawBloodBar();
+  }
+
+  return this.bloodBar;
+};
+
+Item.prototype.redrawBloodBar = function () {
+  var bloodBar = this.getBloodBar();
+  bloodBar.clear();
+
+  // frame
+  bloodBar.lineStyle(2, 0x000000);
+  bloodBar.drawRect(0, 0, this.size.width, 5);
+
+  // blood
+  var width = this.hp / this.fullHp * this.size.width;
+  bloodBar.lineStyle(0, 0x000000);
+  bloodBar.beginFill(0xff0000, 1);
+  bloodBar.drawRect(0, 0, width, 5);
+  bloodBar.endFill();
+  console.log('redrawn', width);
+}
+
 Item.prototype.getImage = function () {
   return 'img/soldier.png';
-
-  
 };
 
 Item.prototype.collide = function (anotherItem) {
@@ -66,6 +100,7 @@ Item.prototype.applyDamage = function (damage) {
   }
 
   requestAnimationFrame(animate);
+  this.redrawBloodBar();
 }
 
 Item.prototype.destroy  = function (callback) {
@@ -79,6 +114,8 @@ Item.prototype.destroy  = function (callback) {
 
     var sprite = _this.getSprite();
     sprite.scale.x = sprite.scale.y = 1 + 0.5 * percentage;
+    sprite.x = _this.location.x - _this.size.width * 0.25 * percentage;
+    sprite.y = _this.location.y - _this.size.height * 0.25 * percentage;
     sprite.alpha = 1 - percentage;
     if (percentage > 1) {
       callback();
@@ -95,6 +132,10 @@ Item.prototype.animateSprite = function () {
 
 var Castle = function (options) {
   Item.apply(this,arguments);
+  this.size = {
+    width : 51,
+    height : 65
+  };
 }
 Castle.prototype = Object.create(Item.prototype);
 
@@ -165,6 +206,7 @@ Soldier.prototype.shouldAttackItem = function (item) {
 }
 
 Soldier.prototype.attack = function (anotherItem) {
+  console.log(this.uuid, 'attack', anotherItem.uuid)
   Socket.attackItem(this, anotherItem, 10);
   this.lastAttack = Date.now();
 }
@@ -232,6 +274,10 @@ var 小明 = function(options) {
 
 var Wall = function () {
   Item.apply(this, arguments);
+  this.size = {
+    width : 47,
+    height : 46
+  };
 }
 
 Wall.prototype = Object.create(Item.prototype);

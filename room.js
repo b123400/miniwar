@@ -65,16 +65,18 @@ var Room = function (name, lobby, io) {
     });
 
     // This player wants to attack another player
-    var lastAttack = null;
+    var lastAttackRecords = {}; // uuid : Date
     socket.on('attack', function (options) {
       // console.log("attacker ", options.itemID, "target", options.targetID);
+
+      var attacker = _this.items[options.itemID];
+      var target = _this.items[options.targetID];
+
+      var lastAttack = lastAttackRecords[attacker.uuid];
 
       // ignore too-frequent attack
       // 0.1 second less because there maybe delay
       if (lastAttack != null && Date.now() - lastAttack < 900) return;
-
-      var attacker = _this.items[options.itemID];
-      var target = _this.items[options.targetID];
 
       // block fake attacker / target
       if (!attacker || !target) return;
@@ -91,7 +93,7 @@ var Room = function (name, lobby, io) {
       // Ok now we can attack
 
       io.emit('attack', options);
-      lastAttack = Date.now();
+      lastAttackRecords[options.itemID] = Date.now();
 
       // Update the target's hp
       target.hp -= Number(options.damage);
