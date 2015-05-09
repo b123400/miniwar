@@ -140,12 +140,22 @@ var Stage = {
 };
 
 var Socket = (function(){
+  var STATE = {
+    NOT_CONNECTED : 0,
+    NOT_READY : 1,
+    READY : 2,
+    PLAYING : 3,
+    ENDED : 4
+  };
+  var currentState = STATE.NOT_CONNECTED;
   var socket;
   return {
     setup : function (_socket) {
       socket = _socket;
+      currentState = STATE.NOT_READY;
       socket.on('start', function (options) {
         document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
+        currentState.PLAYING;
 
         setInterval(function () {
           Stage.money += 5;
@@ -188,6 +198,16 @@ var Socket = (function(){
       });
     },
 
+    ready : function () {
+      if (currentState != STATE.NOT_READY) {
+        console.log('wrong state');
+        return;
+      }
+      currentState = STATE.READY;
+      socket.emit('ready');
+      document.getElementById('status').innerHTML = "Waiting for opponent";
+    },
+
     deployItem : function (options) {
       socket.emit("deploy", options);
     },
@@ -207,4 +227,9 @@ var Socket = (function(){
   var socket = io(':3000/room/'+urlParams['name']);
   Stage.setup();
   Socket.setup(socket);
+
+  document.getElementById('readyButton').addEventListener('click', function (e) {
+    e.preventDefault();
+    Socket.ready();
+  });
 })();

@@ -4,7 +4,7 @@ var Room = function (name, lobby, io) {
   this.name = name;
   this.currentPlayerCount = 0;
   this.playerCount = 2; // target player count
-  this.sockets = [];
+  this.players = [];
   this.items = {};
   this.io = io;
 
@@ -16,48 +16,47 @@ var Room = function (name, lobby, io) {
 
   var _this = this;
   io.on('connection', function(socket){
-    _this.sockets.push(socket);
-    socket.money = {
-      lastConfirm : null,
-      lastValue : 0,
-      increaseRate : 5, // per second
-    };
+    var thisPlayer = new Player(socket)
+    _this.players.push(thisPlayer);
 
     // When there is enough players
-    if (_this.playerCount == _this.sockets.length) {
-      lobby.roomStateChanged(_this);
-      var castles = {};
-      for (var i = _this.sockets.length - 1; i >= 0; i--) {
-        var thisSocket = _this.sockets[i];
-        castles[thisSocket.id] = _this.createItem({
-          type : "castle",
-          location : {
-            x : i == 0? 0 : 500,
-            y : 300
-          },
-          size: {
-            width : 50,
-            height : 50
-          },
-          hp : 100
-        }, thisSocket);
-      }
-      for (var i = _this.sockets.length - 1; i >= 0; i--) {
-        var thisSocket = _this.sockets[i];
-        thisSocket.money.lastConfirm = Date.now();
-        thisSocket.emit("start",{
-          playerCount : _this.sockets.length,
-          playerID: thisSocket.id,
-          targets : castles
+    socket.on('ready', function () {
+      thisPlayer.state = Player.STATE.READY;
+      debugger;
+      if (_this.playerCount == _this.getReadyPlayerCount()) {
+        // everyone is ready
+        lobby.roomStateChanged(_this);
+        var castles = {};
+        _this.players.forEach(function (thisPlayer, i){
+          castles[thisPlayer.id] = _this.createItem({
+            type : "castle",
+            location : {
+              x : i == 0? 0 : 500,
+              y : 300
+            },
+            size: {
+              width : 50,
+              height : 50
+            },
+            hp : 100
+          }, thisPlayer);
+        });
+        _this.players.forEach(function (thisPlayer){
+          thisPlayer.money.lastConfirm = Date.now();
+          thisPlayer.socket.emit("start",{
+            playerCount : _this.players.length,
+            playerID: thisPlayer.id,
+            targets : castles
+          });
         });
       }
-    }
+    });
 
     // When this player is gone
     socket.on('disconnect', function () {
-      _this.sockets.splice(_this.sockets.indexOf(socket), 1); // remove this socket
+      _this.players.splice(_this.players.indexOf(thisPlayer), 1); // remove this socket
       // When everyone is gone
-      if (_this.sockets.length == 0) {
+      if (_this.players.length == 0) {
         io.emit('end');
         lobby.removeRoom(_this);
       }
@@ -70,17 +69,18 @@ var Room = function (name, lobby, io) {
       var now = Date.now();
       // if (now - lastDeploy < 3000) return; // prevent deploy within 3 seconds
 
-      var currentMoney = socket.money.lastValue + (Date.now() - socket.money.lastConfirm)/1000 * socket.money.increaseRate;
+      var money = thisPlayer.money;
+      var currentMoney = money.lastValue + (Date.now() - money.lastConfirm)/1000 * money.increaseRate;
       var price = prices[options.type];
       if (price === undefined) return; // not recognized type
       if (price > currentMoney) return; // not enough money
 
       // if arrived here, can deploy
-      socket.money.lastValue = currentMoney - price;
-      socket.money.lastConfirm = Date.now();
+      money.lastValue = currentMoney - price;
+      money.lastConfirm = Date.now();
       // lastDeploy = now;
 
-      options = _this.createItem(options, socket);
+      options = _this.createItem(options, thisPlayer);
 
       io.emit('deploy', options);
     });
@@ -103,7 +103,7 @@ var Room = function (name, lobby, io) {
       if (!attacker || !target) return;
 
       // you cannot control others' soldier to attack
-      if (attacker.owner !== socket.id) return;
+      if (attacker.owner !== thisPlayer.id) return;
 
       /*
       // Not implemented yet, because we have not confirmed soldier types and value
@@ -127,26 +127,56 @@ var Room = function (name, lobby, io) {
   });
 }
 
-Room.prototype.createItem = function (options, ownerSocket) {
+Room.prototype.createItem = function (options, owner) {
   var thisID = uuid.v4();
   this.items[thisID] = options;
   options.uuid = thisID;
-  options.owner = ownerSocket.id;
+  options.owner = owner.id;
   return options;
-}
+};
 
 Room.prototype.destroyItem = function (item) {
   this.io.emit("destroy", {
     itemID : item.uuid
   });
   delete this.items[item.uuid];
+};
+
+Room.prototype.getPlayerCount = function (state) {
+  return state === undefined?
+    this.players.length :
+    this.players.filter(function (player) {
+      return player.state === state
+    }).length;
+}
+
+Room.prototype.getReadyPlayerCount = function() {
+  return this.getPlayerCount(Player.STATE.READY);
 }
 
 Room.prototype.toJSON = function(){
   return {
     name: this.name,
-    isPlaying: this.sockets.length == this.playerCount
+    isPlaying: this.getPlayerCount(Player.STATE.PLAYING) == this.playerCount
   };
-}
+};
+
+var Player = function (socket) {
+  this.id = uuid.v4();
+  this.state = Player.STATE.NOT_READY;
+  this.socket = socket;
+  this.money = {
+    lastConfirm : null,
+    lastValue : 0,
+    increaseRate : 5, // per second
+  };
+};
+
+Player.STATE = {
+  NOT_READY : 0,
+  READY : 1,
+  PLAYING : 2,
+  ENDED : 3
+};
 
 module.exports = Room;
