@@ -148,6 +148,7 @@ var Soldier = function(options) {
   this.lastMove = Date.now();
   this.lastAttack = Date.now();
   this.target = Player.fromId(options.target).castle;
+  this.stopAnimation = false;
 };
 
 Soldier.prototype = Object.create(Item.prototype);
@@ -156,6 +157,7 @@ Soldier.prototype.animateSprite = function () {
   var _this = this;
   function animate () {
     if (_this.hp <= 0) return; // if this thing is destroyed, stop
+    if (_this.stopAnimation) return;
 
     var targetLocation = _this.target.location;
     var deltaX = targetLocation.x - _this.location.x;
@@ -228,7 +230,7 @@ Soldier.objectForDeploy = function () {
       width : 50,
       height: 50
     },
-    speed : 50,
+    speed : 1,
     hp : 100,
     target : Player.getRandomEnemy().id
   };

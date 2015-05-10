@@ -20,15 +20,40 @@ var Room = function (name, lobby, io) {
     _this.players.push(thisPlayer);
 
     // When there is enough players
-    socket.on('ready', function () {
+    socket.on('ready', function (options) {
       thisPlayer.state = Player.STATE.READY;
-      debugger;
+
+      if (options.playerID) {
+        // trying to restore as another user
+        var existingPlayer = _this.players.filter(function (p){
+          return p.state === Player.STATE.RECONNECTING &&
+            p.id === options.playerID;
+        })[0];
+        if (existingPlayer) {
+          thisPlayer.id = existingPlayer.id;
+          thisPlayer.money = existingPlayer.money;
+          thisPlayer.castle = existingPlayer.castle;
+          _this.players.splice(_this.players.indexOf(existingPlayer), 1); // remove the old player
+          thisPlayer.state = Player.STATE.PLAYING;
+          // restart game
+          thisPlayer.socket.emit('start', {
+            playerCount : _this.players.length,
+            playerID : thisPlayer.id,
+            targets : _this.getCastles()
+          })
+          // sync all players
+          _this.syncAllPlayers();
+          return;
+        }
+      }
+
       if (_this.playerCount == _this.getReadyPlayerCount()) {
         // everyone is ready
         lobby.roomStateChanged(_this);
         var castles = {};
         _this.players.forEach(function (thisPlayer, i){
-          castles[thisPlayer.id] = _this.createItem({
+          thisPlayer.state = Player.STATE.PLAYING;
+          castles[thisPlayer.id] = thisPlayer.castle = _this.createItem({
             type : "castle",
             location : {
               x : i == 0? 0 : 500,
@@ -54,7 +79,11 @@ var Room = function (name, lobby, io) {
 
     // When this player is gone
     socket.on('disconnect', function () {
-      _this.players.splice(_this.players.indexOf(thisPlayer), 1); // remove this socket
+      if (thisPlayer.state === Player.STATE.PLAYING) {
+        thisPlayer.state = Player.STATE.RECONNECTING;
+      } else {
+        _this.players.splice(_this.players.indexOf(thisPlayer), 1); // remove this player
+      }
       // When everyone is gone
       if (_this.players.length == 0) {
         io.emit('end');
@@ -69,16 +98,13 @@ var Room = function (name, lobby, io) {
       var now = Date.now();
       // if (now - lastDeploy < 3000) return; // prevent deploy within 3 seconds
 
-      var money = thisPlayer.money;
-      var currentMoney = money.lastValue + (Date.now() - money.lastConfirm)/1000 * money.increaseRate;
       var price = prices[options.type];
       if (price === undefined) return; // not recognized type
-      if (price > currentMoney) return; // not enough money
+      thisPlayer.updateMoney();
+      if (price > thisPlayer.money.lastValue) return; // not enough money
 
       // if arrived here, can deploy
-      money.lastValue = currentMoney - price;
-      money.lastConfirm = Date.now();
-      // lastDeploy = now;
+      thisPlayer.money.lastValue -= price;
 
       options = _this.createItem(options, thisPlayer);
 
@@ -150,8 +176,34 @@ Room.prototype.getPlayerCount = function (state) {
     }).length;
 }
 
-Room.prototype.getReadyPlayerCount = function() {
+Room.prototype.getReadyPlayerCount = function () {
   return this.getPlayerCount(Player.STATE.READY);
+}
+
+Room.prototype.getCastles = function () {
+  var castles = {};
+  var _this = this;
+  this.players.forEach(function (player) {
+    castles[player.id] = player.castle;
+  });
+  console.log(castles)
+  return castles;
+}
+
+Room.prototype.syncAllPlayers = function () {
+  var _this = this;
+  this.players.forEach(function (player) {
+    player.socket.emit('sync', _this.syncDataForPlayer(player))
+  });
+}
+
+Room.prototype.syncDataForPlayer = function (player) {
+  player.updateMoney();
+  var _this = this;
+  return {
+    items : Object.keys(this.items).map(function(k, arr) { return _this.items[k] }),
+    money : Math.floor(player.money.lastValue)
+  };
 }
 
 Room.prototype.toJSON = function(){
@@ -176,7 +228,13 @@ Player.STATE = {
   NOT_READY : 0,
   READY : 1,
   PLAYING : 2,
-  ENDED : 3
+  RECONNECTING : 3,
+  ENDED : 4
 };
+
+Player.prototype.updateMoney = function () {
+  this.money.lastValue = (Date.now() - this.money.lastConfirm) / 1000 * this.money.increaseRate;
+  this.money.lastConfirm = Date.now();
+}
 
 module.exports = Room;

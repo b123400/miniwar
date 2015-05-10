@@ -93,6 +93,7 @@ var Stage = {
     this.mainStage.addChild(item.getSprite());
     Stage.allItems.push(item);
     item.animateSprite();
+    return item;
   },
 
   removeItem : function (item) {
@@ -104,6 +105,15 @@ var Stage = {
     return function(){
       _this.mainStage.removeChild(item.getSprite());
     };
+  },
+
+  removeAllItems : function () {
+    var _this = this;
+    Stage.allItems.forEach(function (item) {
+      item.stopAnimation = true;
+      _this.mainStage.removeChild(item.getSprite());
+    });
+    Stage.allItems = [];
   },
 
   findItemById : function (targetID) {
@@ -147,15 +157,20 @@ var Socket = (function(){
     PLAYING : 3,
     ENDED : 4
   };
+  var getPlayerID = function () {
+    return localStorage[urlParams['name']]
+  };
+
   var currentState = STATE.NOT_CONNECTED;
   var socket;
   return {
     setup : function (_socket) {
+      var _this = this;
       socket = _socket;
       currentState = STATE.NOT_READY;
       socket.on('start', function (options) {
         document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
-        currentState.PLAYING;
+        currentState = STATE.PLAYING;
 
         setInterval(function () {
           Stage.money += 5;
@@ -170,6 +185,9 @@ var Socket = (function(){
           }
         }
 
+        // for restore
+        _this.rememberPlayerID(options.playerID);
+
         for (var key in Player.allPlayers) {
           Stage.addItem(Player.allPlayers[key].castle); // add to stage;
         }
@@ -178,6 +196,37 @@ var Socket = (function(){
 
       socket.on('end', function () {
 
+      });
+
+      socket.on('sync', function (options) {
+
+        Stage.removeAllItems();
+        
+        var castles = [];
+        var nonCastleItems = [];
+        options.items.forEach(function (item) {
+          if (item.type === "castle") {
+            castles.push(item);
+          } else {
+            nonCastleItems.push(item);
+          }
+        });
+
+        // restore castle first
+        castles.forEach(function (castle) {
+          Object
+          .keys(Player.allPlayers)
+          .map(function (p) { return Player.allPlayers[p]; })
+          .filter(function (p) { return p.castle.uuid === castle.uuid })
+          [0]
+          .castle = Stage.addItem(castle);
+        });
+        // then restore other items
+        nonCastleItems.forEach(function (item) {
+          Stage.addItem(item);
+        });
+
+        Stage.money = options.money;
       });
 
       socket.on('deploy', function (options) {
@@ -204,8 +253,12 @@ var Socket = (function(){
         return;
       }
       currentState = STATE.READY;
-      socket.emit('ready');
+      socket.emit('ready', {playerID : getPlayerID()});
       document.getElementById('status').innerHTML = "Waiting for opponent";
+    },
+
+    rememberPlayerID : function (playerID) {
+      localStorage[urlParams['name']] = playerID;
     },
 
     deployItem : function (options) {
