@@ -157,6 +157,8 @@ var Soldier = function(options) {
   sprite.loop = true;
   sprite.fps = 10;
   sprite.playSequence([0,6]);
+
+  this.stopAnimation = false;
 };
 
 Soldier.prototype = Object.create(Item.prototype);
@@ -165,6 +167,7 @@ Soldier.prototype.animateSprite = function () {
   var _this = this;
   function animate () {
     if (_this.hp <= 0) return; // if this thing is destroyed, stop
+    if (_this.stopAnimation) return;
 
     var targetLocation = _this.target.location;
     var deltaX = targetLocation.x - _this.location.x;
