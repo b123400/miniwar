@@ -63,7 +63,8 @@ var Room = function (name, lobby, io) {
               width : 50,
               height : 50
             },
-            hp : 100
+            hp : 100,
+            fullHp : 100
           }, thisPlayer);
         });
         _this.players.forEach(function (thisPlayer){
@@ -131,6 +132,23 @@ var Room = function (name, lobby, io) {
       // you cannot control others' soldier to attack
       if (attacker.owner !== thisPlayer.id) return;
 
+      if (!(attacker.location.x === options.location.x &&
+            attacker.location.y === options.location.y)) {
+        // location changed
+        var distance = Math.sqrt(
+          Math.pow(attacker.location.x - options.location.x, 2) +
+          Math.pow(attacker.location.y - options.location.y, 2)
+        );
+        var maxPossibleDistance = (Date.now() - attacker.lastUpdate) / 1000 * attacker.speed;
+        if (maxPossibleDistance < distance) {
+          // cannot move that fast
+          return;
+        } else {
+          attacker.lastUpdate = Date.now();
+          attacker.location = options.location;
+        }
+      }
+
       /*
       // Not implemented yet, because we have not confirmed soldier types and value
       //prevent fake-damgage attack
@@ -153,6 +171,27 @@ var Room = function (name, lobby, io) {
       }
     });
 
+    socket.on('update', function (options) {
+      var item = _this.items[options.item];
+      if (item.owner !== thisPlayer.id) return;
+      for (var key in options) {
+        if (key === "location") {
+          var distance = Math.sqrt(
+            Math.pow(item.location.x - options.location.x, 2) +
+            Math.pow(item.location.y - options.location.y, 2)
+          );
+          var maxPossibleDistance = (Date.now() - item.lastUpdate) / 1000 * item.speed;
+          if (maxPossibleDistance > distance) {
+            item[key] = options[key];
+          }
+          continue;
+        } else if (key === 'hp') {
+          continue;
+        }
+        item[key] = options[key];
+      }
+    });
+
   });
 }
 
@@ -161,6 +200,7 @@ Room.prototype.createItem = function (options, owner) {
   this.items[thisID] = options;
   options.uuid = thisID;
   options.owner = owner.id;
+  options.lastUpdate = Date.now();
   return options;
 };
 
@@ -189,7 +229,6 @@ Room.prototype.getCastles = function () {
   this.players.forEach(function (player) {
     castles[player.id] = player.castle;
   });
-  console.log(castles)
   return castles;
 }
 

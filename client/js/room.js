@@ -203,7 +203,7 @@ var Socket = (function(){
       });
 
       socket.on('sync', function (options) {
-
+        if (currentState !== STATE.PLAYING) return;
         Stage.removeAllItems();
         
         var castles = [];
@@ -238,11 +238,13 @@ var Socket = (function(){
       });
 
       socket.on('attack', function (options) {
+        if (currentState !== STATE.PLAYING) return;
         var thisItem = Stage.findItemById(options.targetID);
         thisItem.applyDamage(options.damage);
       });
 
       socket.on("destroy", function (options) {
+        if (currentState !== STATE.PLAYING) return;
         var thisItem = Stage.findItemById(options.itemID);
         var removeFromStage = Stage.removeItem(thisItem);
         thisItem.destroy(function(){
@@ -274,8 +276,15 @@ var Socket = (function(){
       socket.emit("attack", {
         itemID: attacker.uuid,
         targetID: otherItem.uuid,
-        damage: damage
+        damage: damage,
+        location: attacker.location
       });
+    },
+
+    updateItem : function (item) {
+      var info = item.objectForUpdate();
+      info.item = item.uuid;
+      socket.emit('update', info);
     }
   };
 })();
