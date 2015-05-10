@@ -12,9 +12,12 @@ var Stage = {
     document.getElementById("stage").appendChild(this.renderer.view);
     this.baseStage = new PIXI.Stage(0xffffff);
 
-    var background = new PIXI.Sprite.fromImage("img/background.png");
+    var bgtexture = PIXI.Texture.fromImage("img/Floor.png");
+    var background = new PIXI.TilingSprite(bgtexture, this.renderer.width, this.renderer.height);
     background.width = this.renderer.width;
     background.height = this.renderer.height;
+    background.tileScale.x = 1;
+    background.tileScale.y = 1;
     this.baseStage.addChild(background);
 
     this.mainStage = new PIXI.Stage(0xffffff);
@@ -26,29 +29,44 @@ var Stage = {
 
     // money
     this.moneyLabel = new PIXI.Text("$0", {fill:'yellow'});
-    this.moneyLabel.x = 0;
-    this.moneyLabel.y = 660;
-    this.moneyLabel.font = 'bold 20px Arial';
+    this.moneyLabel.x = this.renderer.width - 300;
+    this.moneyLabel.y = 650;
+    this.moneyLabel.font = 'bold 30px Arial';
     this.moneyLabel.width = 200;
-    this.moneyLabel.height = 80;
+    this.moneyLabel.height = 100;
     this.baseStage.addChild(this.moneyLabel);
 
     // deploy buttons
 
+    var prices = {
+        "soldier" : 3,
+        "siuming" : 10,
+        "wall" : 3
+    };
+
     var itemsWithButton = [Soldier, Wall, 小明],
-        lastX = 0,
+        lastX = 10,
         _this = this,
         selectedItemClass = null;
+
 
     itemsWithButton.forEach(function (itemClass) {
       var button = itemClass.createButtonSprite();
       button.x = lastX;
-      button.y = 600;
-      button.width = 50;
-      lastX += button.width;
+      button.y = 620;
+      button.width = 64;
+      lastX += 80;
       button.mouseup = function() {
         selectedItemClass = itemClass;
       }
+      
+      var moneyLabel = new PIXI.Text("$?", {fill:'yellow'});
+      moneyLabel.y = -30;
+      moneyLabel.font = 'bold 30px Arial';
+      moneyLabel.width = 200;
+      moneyLabel.height = 100;
+      button.addChild(moneyLabel);
+
       _this.baseStage.addChild(button);
     });
 
@@ -69,11 +87,7 @@ var Stage = {
       Socket.deployItem(options);
     };
 
-    var prices = {
-      "soldier" : 3,
-      "siuming" : 10,
-      "wall" : 3
-    };
+    
 
     requestAnimationFrame(animate);
 
