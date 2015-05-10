@@ -13,12 +13,9 @@ var Item = function(options) {
 Item.prototype.getSprite = function () {
   if (this.sprite) return this.sprite;
 
-  this.sprite = new PIXI.Sprite.fromImage(this.getImage());
-  this.sprite.x = this.location.x;
-  this.sprite.y = this.location.y;
-  this.sprite.width = this.size.width;
-  this.sprite.height = this.size.height;
-
+  this.sprite = new PIXI.MovieClip.fromImages(this.getImage());
+  addStatePlayer(this.sprite);
+  this.setSpriteTransfrom();
   this.sprite.addChild(this.getBloodBar());
 
   return this.sprite;
@@ -52,7 +49,14 @@ Item.prototype.redrawBloodBar = function () {
 }
 
 Item.prototype.getImage = function () {
-  return 'img/soldier.png';
+  return ['img/soldier.png'];
+};
+
+Item.prototype.setSpriteTransfrom = function () {
+  this.sprite.x = this.location.x;
+  this.sprite.y = this.location.y;
+  this.sprite.width = this.size.width;
+  this.sprite.height = this.size.height;
 };
 
 Item.prototype.objectForUpdate = function () {
@@ -143,7 +147,7 @@ var Castle = function (options) {
 Castle.prototype = Object.create(Item.prototype);
 
 Castle.prototype.getImage = function () {
-  return 'img/castle.png';
+  return ['img/castle.png'];
 }
 
 var Soldier = function(options) {
@@ -152,6 +156,12 @@ var Soldier = function(options) {
   this.lastMove = Date.now();
   this.lastAttack = Date.now();
   this.target = Player.fromId(options.target).castle;
+
+  var sprite = this.getSprite()
+  sprite.loop = true;
+  sprite.fps = 10;
+  sprite.playSequence([0,6]);
+
   this.stopAnimation = false;
 };
 
@@ -188,6 +198,7 @@ Soldier.prototype.animateSprite = function () {
     }
     if (_this.owner === Player.me && Date.now() - _this.lastAttack > 1000) {
       // this item can attack now
+      _this.getSprite().playSequence([0,9]);
       crashingItems
       .filter(_this.shouldAttackItem.bind(_this))
       .forEach(function (item) {
@@ -195,9 +206,7 @@ Soldier.prototype.animateSprite = function () {
       });
     }
 
-    var sprite = _this.getSprite();
-    sprite.x = _this.location.x;
-    sprite.y = _this.location.y;
+    _this.setSpriteTransfrom();
     _this.lastMove = Date.now();
 
     requestAnimationFrame(animate);
@@ -223,8 +232,48 @@ Soldier.prototype.attack = function (anotherItem) {
   this.lastAttack = Date.now();
 }
 
+Soldier.prototype.getImage = function () {
+  return ['img/mushroom10000.png',
+          'img/mushroom10001.png',
+          'img/mushroom10002.png',
+          'img/mushroom10003.png',
+          'img/mushroom10004.png',
+          'img/mushroom10005.png',
+          'img/mushroom10006.png',
+          'img/mushroom10007.png',
+          'img/mushroom10008.png',
+          'img/mushroom10009.png',
+          'img/mushroom10010.png',
+          'img/mushroom10011.png',
+          'img/mushroom10012.png',
+          'img/mushroom10013.png',
+          'img/mushroom10014.png',
+          'img/mushroom10015.png',
+          'img/mushroom10016.png'];
+};
+
+Soldier.prototype.setSpriteTransfrom = function () {
+  if (!this.lastX)
+    this.lastX = this.location.x;
+
+  this.sprite.x = this.location.x;
+  this.sprite.y = this.location.y-32;
+  this.sprite.width = 64;
+  this.sprite.height = 64;
+  if (this.location.x - this.lastX >= 0){
+    this.sprite.scale.x = 1;
+    this.sprite.x -= 32;
+  }else{
+    this.sprite.scale.x = -1;
+    this.sprite.x += 32;
+  }
+
+  this.lastX = this.location.x;
+};
+
+
 Soldier.createButtonSprite = function () {
-  var button = new PIXI.Sprite.fromImage("img/soldier.png");
+  var button = new PIXI.Sprite.fromImage("img/mushroom10002.png");
   button.buttonMode = true;
   button.interactive = true;
   return button;
@@ -251,12 +300,14 @@ Soldier.objectForDeploy = function () {
 /*siuming*/
 var 小明 = function(options) {
   Soldier.apply(this, arguments);
+  this.getSprite().fps = 5;
+  this.getSprite().playSequence([0,1]);
 };
 
 小明.prototype = Object.create(Soldier.prototype);
 
 小明.createButtonSprite = function () {
-  var button = new PIXI.Sprite.fromImage("img/siuming.png");
+  var button = new PIXI.Sprite.fromImage("img/mushroom20000.png");
   button.buttonMode = true;
   button.interactive = true;
   return button;
@@ -281,7 +332,7 @@ var 小明 = function(options) {
 }
 
 小明.prototype.getImage = function () {
-  return 'img/siuming.png';
+  return ['img/mushroom20000.png','img/mushroom20001.png'];
 };
 
 小明.prototype.shouldAttackItem = function (item) {
@@ -302,7 +353,7 @@ var Wall = function () {
 Wall.prototype = Object.create(Item.prototype);
 
 Wall.prototype.getImage = function () {
-  return 'img/wall.png';
+  return ['img/wall.png'];
 };
 
 Wall.objectForDeploy = function () {
