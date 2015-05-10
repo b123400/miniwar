@@ -147,9 +147,9 @@ var Room = function (name, lobby, io) {
       if (target.hp <= 0) {
         // target should die
         _this.destroyItem(target);
-			if(target.type == "castle"){
-				io.emit('end', {winner: options.owner});
-			}
+        if(target.type == "castle"){
+          io.emit('end', {winner: attacker.owner});
+        }
       }
     });
 

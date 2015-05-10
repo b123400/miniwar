@@ -230,7 +230,7 @@ Soldier.objectForDeploy = function () {
       width : 50,
       height: 50
     },
-    speed : 1,
+    speed : 50,
     hp : 100,
     target : Player.getRandomEnemy().id
   };

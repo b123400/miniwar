@@ -141,8 +141,8 @@ var Stage = {
         return new Wall(options);
       case "castle":
         return new Castle(options);
-  	  case "siuming":
-    		return new 小明(options);
+      case "siuming":
+        return new 小明(options);
         break;
     }
     return undefined;
@@ -194,25 +194,12 @@ var Socket = (function(){
 
       });
 
-      socket.on('end', function () {
-		 if(options.playerID == winner){
-			this.WinLabel = new PIXI.Text("Victory", {fill:'blue'});
-			this.WinLabel.x = 400;
-			this.WinLabel.y = 300;
-			this.WinLabel.font = 'bold 20px Arial';
-			this.WinLabel.width = 200;
-			this.WinLabel.height = 80;
-			this.baseStage.addChild(this.WinLabel); 
-		 }
-		 else{
-			this.LoseLabel = new PIXI.Text("Defeat", {fill:'red'});
-			this.LoseLabel.x = 400;
-			this.LoseLabel.y = 300;
-			this.LoseLabel.font = 'bold 20px Arial';
-			this.LoseLabel.width = 200;
-			this.LoseLabel.height = 80;
-			this.baseStage.addChild(this.LoseLabel); 
-		 }
+      socket.on('end', function (options) {
+        if(Player.me.id == options.winner){
+          alert('win');
+        } else {
+          alert('lose');
+        }
       });
 
       socket.on('sync', function (options) {
