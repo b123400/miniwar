@@ -1,0 +1,15 @@
+body {
+  background-color: #00b349;
+}
+
+#stage {
+  text-align: center;
+}
+
+#stage canvas {
+  border: solid 3px rgba(255,255,255,0.3);
+  background: rgba(0,0,0,0.1);
+  max-width: 100%;
+  border-radius: 10px;
+  padding: 10px;
+}

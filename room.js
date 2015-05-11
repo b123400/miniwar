@@ -86,8 +86,7 @@ var Room = function (name, lobby, io) {
         _this.players.splice(_this.players.indexOf(thisPlayer), 1); // remove this player
       }
       // When everyone is gone
-      if (_this.players.length == 0) {
-        io.emit('end');
+      if (_this.getPlayerCount(Player.STATE.PLAYING).length == 0) {
         lobby.removeRoom(_this);
       }
     });
@@ -96,6 +95,8 @@ var Room = function (name, lobby, io) {
     // This player wants to deploy something
     // var lastDeploy = null;
     socket.on('deploy', function (options) {
+      if (thisPlayer.state !== Player.STATE.PLAYING) return;
+
       var now = Date.now();
       // if (now - lastDeploy < 3000) return; // prevent deploy within 3 seconds
 
@@ -116,6 +117,8 @@ var Room = function (name, lobby, io) {
     var lastAttackRecords = {}; // uuid : Date
     socket.on('attack', function (options) {
       // console.log("attacker ", options.itemID, "target", options.targetID);
+
+      if (thisPlayer.state !== Player.STATE.PLAYING) return;
 
       var attacker = _this.items[options.itemID];
       var target = _this.items[options.targetID];
@@ -166,7 +169,11 @@ var Room = function (name, lobby, io) {
         // target should die
         _this.destroyItem(target);
         if(target.type == "castle"){
+          _this.players.forEach(function(p){
+            p.state = Player.STATE.ENDED
+          });
           io.emit('end', {winner: attacker.owner});
+          lobby.removeRoom(_this);
         }
       }
     });

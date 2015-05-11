@@ -160,6 +160,18 @@ var Stage = {
         break;
     }
     return undefined;
+  },
+
+  showWinMessage : function () {
+    $("#result-modal").modal('show');
+    $("#result").html("Contragulation, you won!");
+    $("#result-button").html("Play one more time");
+  },
+
+  showLoseMessage : function () {
+    $("#result-modal").modal('show');
+    $("#result").html("You lose... Practice more man.");
+    $("#result-button").html("Never give up");
   }
 };
 
@@ -183,7 +195,11 @@ var Socket = (function(){
       socket = _socket;
       currentState = STATE.NOT_READY;
       socket.on('start', function (options) {
-        document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
+        $("#status").html("Here we go!");
+        setTimeout(function(){
+          $("#status-modal").modal('hide');
+        },1000);
+
         currentState = STATE.PLAYING;
 
         setInterval(function () {
@@ -209,10 +225,13 @@ var Socket = (function(){
       });
 
       socket.on('end', function (options) {
+        if (currentState !== STATE.PLAYING) return;
+
+        currentState = STATE.ENDED;
         if(Player.me.id == options.winner){
-          alert('win');
+          Stage.showWinMessage();
         } else {
-          alert('lose');
+          Stage.showLoseMessage();
         }
       });
 
@@ -248,6 +267,7 @@ var Socket = (function(){
       });
 
       socket.on('deploy', function (options) {
+        if (currentState !== STATE.PLAYING) return;
         Stage.addItem(options);
       });
 
@@ -274,7 +294,8 @@ var Socket = (function(){
       }
       currentState = STATE.READY;
       socket.emit('ready', {playerID : getPlayerID()});
-      document.getElementById('status').innerHTML = "Waiting for opponent";
+      $("#status").html("Hang tight, someone's joining.");
+      $("#ready-button").attr('disabled', 'disabled');
     },
 
     rememberPlayerID : function (playerID) {
@@ -308,8 +329,10 @@ var Socket = (function(){
   Stage.setup();
   Socket.setup(socket);
 
-  document.getElementById('readyButton').addEventListener('click', function (e) {
+  $("#ready-button").on('click', function (e) {
     e.preventDefault();
     Socket.ready();
   });
+
+  $("#status-modal").modal('show');
 })();

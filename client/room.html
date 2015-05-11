@@ -1,15 +1,55 @@
 <html>
   <head>
     <title>miniwar</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
   </head>
   <body>
-    <div id="status">
-      Loading...
-      <button id="readyButton">I am ready</button>
+    <div class="modal fade" id="status-modal"
+    data-backdrop="static" 
+    data-keyboard="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Sup?</h4>
+          </div>
+          <div class="modal-body" id="status">
+            Are you good to go?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="ready-button">I'm ready.</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="stage">
-      
+
+    <div class="modal fade" id="result-modal"
+    data-backdrop="static" 
+    data-keyboard="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+<!--           <div class="modal-header">
+            <h4 class="modal-title">That's</h4>
+          </div> -->
+          <div class="modal-body" id="result">
+            That's the end.
+          </div>
+          <div class="modal-footer">
+            <a class="btn btn-primary" id="result-button" href="/">OK</a>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12" id="stage">
+        </div>
+      </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/pixi.dev.js"></script>

@@ -335,6 +335,11 @@ var 小明 = function(options) {
   return ['img/mushroom20000.png','img/mushroom20001.png'];
 };
 
+小明.prototype.shouldCollideItem = function (item) {
+  if (item.owner === this.owner) return false;
+  return true;
+}
+
 小明.prototype.shouldAttackItem = function (item) {
   if (item instanceof Soldier) return true;
   return Soldier.prototype.shouldAttackItem.apply(this, arguments);
