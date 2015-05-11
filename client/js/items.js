@@ -1,7 +1,7 @@
 var Item = function(options) {
   this.uuid = options.uuid;
   this.hp = options.hp;
-  this.fullHp = this.hp;
+  this.fullHp = options.fullHp;
   this.location = options.location;
   this.size = {
     width : 42,
@@ -58,6 +58,18 @@ Item.prototype.setSpriteTransfrom = function () {
   this.sprite.width = this.size.width;
   this.sprite.height = this.size.height;
 };
+
+Item.prototype.objectForUpdate = function () {
+  return {location : this.location};
+}
+
+Item.prototype.objectForUpdate = function () {
+  return {location : this.location};
+}
+
+Item.prototype.objectForUpdate = function () {
+  return {location : this.location};
+}
 
 Item.prototype.collide = function (anotherItem) {
   var r1 = {
@@ -187,18 +199,19 @@ Soldier.prototype.animateSprite = function () {
     };
 
     var crashingItems = Stage.collisionItemsForItem(_this, targetLocation, _this.size);
-    crashingItems = crashingItems.filter(_this.shouldAttackItem);
+    collidedItems = crashingItems.filter(_this.shouldCollideItem.bind(_this));
 
-    if (!crashingItems.length) {
+    if (!collidedItems.length) {
       _this.location = targetLocation;
-    } else {
-      if (_this.owner === Player.me && Date.now() - _this.lastAttack > 1000) {
-        // yo lets attack!
-        _this.getSprite().playSequence([0,9]);
-        crashingItems.forEach(function (item) {
-          _this.attack(item);
-        });
-      }
+    }
+    if (_this.owner === Player.me && Date.now() - _this.lastAttack > 1000) {
+      // this item can attack now
+      _this.getSprite().playSequence([0,9]);
+      crashingItems
+      .filter(_this.shouldAttackItem.bind(_this))
+      .forEach(function (item) {
+        _this.attack(item);
+      });
     }
 
     _this.setSpriteTransfrom();
@@ -209,8 +222,14 @@ Soldier.prototype.animateSprite = function () {
   animate();
 }
 
+Soldier.prototype.shouldCollideItem = function (item) {
+  if (!(item instanceof Soldier)) return true; // wall or castle
+  // it is soldier
+  return false;
+}
+
 Soldier.prototype.shouldAttackItem = function (item) {
-  if (item.owner == Player.me) return false;
+  if (item.owner === this.owner) return false;
   if (item instanceof Soldier) return false;
   return true;
 }
@@ -281,6 +300,7 @@ Soldier.objectForDeploy = function () {
     },
     speed : 50,
     hp : 100,
+    fullHp : 100,
     target : Player.getRandomEnemy().id
   };
 }
@@ -314,6 +334,7 @@ var 小明 = function(options) {
     },
     speed : 150,
     hp : 50,
+    fullHp : 50,
     target : Player.getRandomEnemy().id
   };
 }
@@ -321,6 +342,36 @@ var 小明 = function(options) {
 小明.prototype.getImage = function () {
   return ['img/mushroom20000.png','img/mushroom20001.png'];
 };
+
+小明.prototype.shouldCollideItem = function (item) {
+  if (item.owner === this.owner) return false;
+  return true;
+}
+
+小明.prototype.shouldAttackItem = function (item) {
+  if (item instanceof Soldier) return true;
+  return Soldier.prototype.shouldAttackItem.apply(this, arguments);
+}
+
+小明.prototype.shouldCollideItem = function (item) {
+  if (item.owner === this.owner) return false;
+  return true;
+}
+
+小明.prototype.shouldAttackItem = function (item) {
+  if (item instanceof Soldier) return true;
+  return Soldier.prototype.shouldAttackItem.apply(this, arguments);
+}
+
+小明.prototype.shouldCollideItem = function (item) {
+  if (item.owner === this.owner) return false;
+  return true;
+}
+
+小明.prototype.shouldAttackItem = function (item) {
+  if (item instanceof Soldier) return true;
+  return Soldier.prototype.shouldAttackItem.apply(this, arguments);
+}
 
 /*end of siuming*/
 
@@ -350,7 +401,8 @@ Wall.objectForDeploy = function () {
       height: 50
     },
     speed : 50,
-    hp : 100
+    hp : 100,
+    fullHp : 100
   };
 };
 
