@@ -27,6 +27,15 @@ var Stage = {
     this.mainStage.height = 600;
     this.baseStage.addChild(this.mainStage);
 
+    //item bar
+    var itemBar = new PIXI.Sprite.fromImage("img/ItemBar.png");
+    itemBar.width = 300;
+    itemBar.height = 150;
+    itemBar.x = 0;
+    itemBar.y = this.renderer.height-150;
+    this.baseStage.addChild(itemBar);
+
+
     // money
     this.moneyLabel = new PIXI.Text("$0", {fill:'yellow'});
     this.moneyLabel.x = this.renderer.width - 300;
@@ -107,7 +116,6 @@ var Stage = {
     this.mainStage.addChild(item.getSprite());
     Stage.allItems.push(item);
     item.animateSprite();
-    return item;
   },
 
   removeItem : function (item) {
@@ -119,15 +127,6 @@ var Stage = {
     return function(){
       _this.mainStage.removeChild(item.getSprite());
     };
-  },
-
-  removeAllItems : function () {
-    var _this = this;
-    Stage.allItems.forEach(function (item) {
-      item.stopAnimation = true;
-      _this.mainStage.removeChild(item.getSprite());
-    });
-    Stage.allItems = [];
   },
 
   findItemById : function (targetID) {
@@ -155,52 +154,21 @@ var Stage = {
         return new Wall(options);
       case "castle":
         return new Castle(options);
-      case "siuming":
-        return new 小明(options);
+  	  case "siuming":
+    		return new 小明(options);
         break;
     }
     return undefined;
-  },
-
-  showWinMessage : function () {
-    $("#result-modal").modal('show');
-    $("#result").html("Contragulation, you won!");
-    $("#result-button").html("Play one more time");
-  },
-
-  showLoseMessage : function () {
-    $("#result-modal").modal('show');
-    $("#result").html("You lose... Practice more man.");
-    $("#result-button").html("Never give up");
   }
 };
 
 var Socket = (function(){
-  var STATE = {
-    NOT_CONNECTED : 0,
-    NOT_READY : 1,
-    READY : 2,
-    PLAYING : 3,
-    ENDED : 4
-  };
-  var getPlayerID = function () {
-    return localStorage[urlParams['name']]
-  };
-
-  var currentState = STATE.NOT_CONNECTED;
   var socket;
   return {
     setup : function (_socket) {
-      var _this = this;
       socket = _socket;
-      currentState = STATE.NOT_READY;
       socket.on('start', function (options) {
-        $("#status").html("Here we go!");
-        setTimeout(function(){
-          $("#status-modal").modal('hide');
-        },1000);
-
-        currentState = STATE.PLAYING;
+        document.getElementById('status').innerHTML = "Start. player count: " + options.playerCount;
 
         setInterval(function () {
           Stage.money += 5;
@@ -215,91 +183,32 @@ var Socket = (function(){
           }
         }
 
-        // for restore
-        _this.rememberPlayerID(options.playerID);
-
         for (var key in Player.allPlayers) {
           Stage.addItem(Player.allPlayers[key].castle); // add to stage;
         }
 
       });
 
-      socket.on('end', function (options) {
-        if (currentState !== STATE.PLAYING) return;
+      socket.on('end', function () {
 
-        currentState = STATE.ENDED;
-        if(Player.me.id == options.winner){
-          Stage.showWinMessage();
-        } else {
-          Stage.showLoseMessage();
-        }
-      });
-
-      socket.on('sync', function (options) {
-        if (currentState !== STATE.PLAYING) return;
-        Stage.removeAllItems();
-        
-        var castles = [];
-        var nonCastleItems = [];
-        options.items.forEach(function (item) {
-          if (item.type === "castle") {
-            castles.push(item);
-          } else {
-            nonCastleItems.push(item);
-          }
-        });
-
-        // restore castle first
-        castles.forEach(function (castle) {
-          Object
-          .keys(Player.allPlayers)
-          .map(function (p) { return Player.allPlayers[p]; })
-          .filter(function (p) { return p.castle.uuid === castle.uuid })
-          [0]
-          .castle = Stage.addItem(castle);
-        });
-        // then restore other items
-        nonCastleItems.forEach(function (item) {
-          Stage.addItem(item);
-        });
-
-        Stage.money = options.money;
       });
 
       socket.on('deploy', function (options) {
-        if (currentState !== STATE.PLAYING) return;
         Stage.addItem(options);
       });
 
       socket.on('attack', function (options) {
-        if (currentState !== STATE.PLAYING) return;
         var thisItem = Stage.findItemById(options.targetID);
         thisItem.applyDamage(options.damage);
       });
 
       socket.on("destroy", function (options) {
-        if (currentState !== STATE.PLAYING) return;
         var thisItem = Stage.findItemById(options.itemID);
         var removeFromStage = Stage.removeItem(thisItem);
         thisItem.destroy(function(){
           removeFromStage();
         });
       });
-    },
-
-    ready : function () {
-      if (currentState != STATE.NOT_READY) {
-        console.log('wrong state');
-        return;
-      }
-      currentState = STATE.READY;
-      socket.emit('ready', {playerID : getPlayerID()});
-      $("#status").html("Hang tight, someone's joining.");
-      $("#ready-button").attr('disabled', 'disabled');
-    },
-
-    rememberPlayerID : function (playerID) {
-      localStorage[urlParams['name']] = playerID;
     },
 
     deployItem : function (options) {
@@ -311,15 +220,8 @@ var Socket = (function(){
       socket.emit("attack", {
         itemID: attacker.uuid,
         targetID: otherItem.uuid,
-        damage: damage,
-        location: attacker.location
+        damage: damage
       });
-    },
-
-    updateItem : function (item) {
-      var info = item.objectForUpdate();
-      info.item = item.uuid;
-      socket.emit('update', info);
     }
   };
 })();
@@ -328,11 +230,4 @@ var Socket = (function(){
   var socket = io(':3000/room/'+urlParams['name']);
   Stage.setup();
   Socket.setup(socket);
-
-  $("#ready-button").on('click', function (e) {
-    e.preventDefault();
-    Socket.ready();
-  });
-
-  $("#status-modal").modal('show');
 })();

@@ -1,7 +1,7 @@
 var Item = function(options) {
   this.uuid = options.uuid;
   this.hp = options.hp;
-  this.fullHp = options.fullHp;
+  this.fullHp = this.hp;
   this.location = options.location;
   this.size = {
     width : 42,
@@ -58,10 +58,6 @@ Item.prototype.setSpriteTransfrom = function () {
   this.sprite.width = this.size.width;
   this.sprite.height = this.size.height;
 };
-
-Item.prototype.objectForUpdate = function () {
-  return {location : this.location};
-}
 
 Item.prototype.collide = function (anotherItem) {
   var r1 = {
@@ -191,19 +187,18 @@ Soldier.prototype.animateSprite = function () {
     };
 
     var crashingItems = Stage.collisionItemsForItem(_this, targetLocation, _this.size);
-    collidedItems = crashingItems.filter(_this.shouldCollideItem.bind(_this));
+    crashingItems = crashingItems.filter(_this.shouldAttackItem);
 
-    if (!collidedItems.length) {
+    if (!crashingItems.length) {
       _this.location = targetLocation;
-    }
-    if (_this.owner === Player.me && Date.now() - _this.lastAttack > 1000) {
-      // this item can attack now
-      _this.getSprite().playSequence([0,9]);
-      crashingItems
-      .filter(_this.shouldAttackItem.bind(_this))
-      .forEach(function (item) {
-        _this.attack(item);
-      });
+    } else {
+      if (_this.owner === Player.me && Date.now() - _this.lastAttack > 1000) {
+        // yo lets attack!
+        _this.getSprite().playSequence([0,9]);
+        crashingItems.forEach(function (item) {
+          _this.attack(item);
+        });
+      }
     }
 
     _this.setSpriteTransfrom();
@@ -214,14 +209,8 @@ Soldier.prototype.animateSprite = function () {
   animate();
 }
 
-Soldier.prototype.shouldCollideItem = function (item) {
-  if (!(item instanceof Soldier)) return true; // wall or castle
-  // it is soldier
-  return false;
-}
-
 Soldier.prototype.shouldAttackItem = function (item) {
-  if (item.owner === this.owner) return false;
+  if (item.owner == Player.me) return false;
   if (item instanceof Soldier) return false;
   return true;
 }
@@ -292,7 +281,6 @@ Soldier.objectForDeploy = function () {
     },
     speed : 50,
     hp : 100,
-    fullHp : 100,
     target : Player.getRandomEnemy().id
   };
 }
@@ -326,7 +314,6 @@ var 小明 = function(options) {
     },
     speed : 150,
     hp : 50,
-    fullHp : 50,
     target : Player.getRandomEnemy().id
   };
 }
@@ -334,16 +321,6 @@ var 小明 = function(options) {
 小明.prototype.getImage = function () {
   return ['img/mushroom20000.png','img/mushroom20001.png'];
 };
-
-小明.prototype.shouldCollideItem = function (item) {
-  if (item.owner === this.owner) return false;
-  return true;
-}
-
-小明.prototype.shouldAttackItem = function (item) {
-  if (item instanceof Soldier) return true;
-  return Soldier.prototype.shouldAttackItem.apply(this, arguments);
-}
 
 /*end of siuming*/
 
@@ -358,7 +335,7 @@ var Wall = function () {
 Wall.prototype = Object.create(Item.prototype);
 
 Wall.prototype.getImage = function () {
-  return ['img/wall.png'];
+  return ['img/mushroom30000.png'];
 };
 
 Wall.objectForDeploy = function () {
@@ -373,13 +350,12 @@ Wall.objectForDeploy = function () {
       height: 50
     },
     speed : 50,
-    hp : 100,
-    fullHp : 100
+    hp : 100
   };
 };
 
 Wall.createButtonSprite = function () {
-  var button = new PIXI.Sprite.fromImage("img/wall.png");
+  var button = new PIXI.Sprite.fromImage("img/mushroom30000.png");
   button.buttonMode = true;
   button.interactive = true;
   return button;
