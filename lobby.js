@@ -28,7 +28,9 @@ Lobby = function (rootIo) {
   });
 
   function allRooms() {
-    return rooms;
+    return rooms.filter(function(r){
+      return !r.toJSON().isPlaying;
+    });
   }
 
   Lobby.removeRoom = function(room) {

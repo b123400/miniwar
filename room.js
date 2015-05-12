@@ -49,7 +49,6 @@ var Room = function (name, lobby, io) {
 
       if (_this.playerCount == _this.getReadyPlayerCount()) {
         // everyone is ready
-        lobby.roomStateChanged(_this);
         var castles = {};
         _this.players.forEach(function (thisPlayer, i){
           thisPlayer.state = Player.STATE.PLAYING;
@@ -75,6 +74,7 @@ var Room = function (name, lobby, io) {
             targets : castles
           });
         });
+        lobby.roomStateChanged(_this);
       }
     });
 
