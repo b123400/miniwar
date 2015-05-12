@@ -381,12 +381,38 @@ var Wall = function () {
     width : 47,
     height : 46
   };
+
+  this.getSprite().fps = 3;
+  this.getSprite().playSequence([0,4]);
 }
 
 Wall.prototype = Object.create(Item.prototype);
 
 Wall.prototype.getImage = function () {
-  return ['img/mushroom30000.png'];
+  return ['img/mushroom30000.png',
+          'img/mushroom30000.png',
+          'img/mushroom30000.png',
+          'img/mushroom30000.png',
+          'img/mushroom30001.png'];
+};
+
+Wall.prototype.setSpriteTransfrom = function () {
+  if (!this.lastX)
+    this.lastX = this.location.x;
+
+  this.sprite.x = this.location.x;
+  this.sprite.y = this.location.y-32;
+  this.sprite.width = 64;
+  this.sprite.height = 64;
+  if (this.location.x - this.lastX >= 0){
+    this.sprite.scale.x = 1;
+    this.sprite.x -= 32;
+  }else{
+    this.sprite.scale.x = -1;
+    this.sprite.x += 32;
+  }
+
+  this.lastX = this.location.x;
 };
 
 Wall.objectForDeploy = function () {
