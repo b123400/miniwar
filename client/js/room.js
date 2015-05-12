@@ -41,10 +41,11 @@ var Stage = {
     var prices = {
         "soldier" : 3,
         "siuming" : 10,
-        "wall" : 3
+        "wall" : 3,
+        "tower": 10
     };
 
-    var itemsWithButton = [Soldier, Wall, 小明],
+    var itemsWithButton = [Soldier, Wall, 小明, Tower],
         lastX = 10,
         _this = this,
         selectedItemClass = null;
@@ -130,15 +131,6 @@ var Stage = {
     Stage.allItems = [];
   },
 
-  removeAllItems : function () {
-    var _this = this;
-    Stage.allItems.forEach(function (item) {
-      item.stopAnimation = true;
-      _this.mainStage.removeChild(item.getSprite());
-    });
-    Stage.allItems = [];
-  },
-
   findItemById : function (targetID) {
     for (var i = Stage.allItems.length - 1; i >= 0; i--) {
       var thisItem = Stage.allItems[i];
@@ -152,7 +144,10 @@ var Stage = {
     return this.allItems.filter(function(thisItem){
       if (item == thisItem) return false; // don't count self
       // return true if crashing
-      return item.collide(thisItem);
+      return thisItem.collide({
+        location : location,
+        size : size
+      });
     });
   },
 
@@ -166,6 +161,8 @@ var Stage = {
         return new Castle(options);
       case "siuming":
         return new 小明(options);
+      case "tower":
+        return new Tower(options);
         break;
     }
     return undefined;
@@ -294,21 +291,6 @@ var Socket = (function(){
           removeFromStage();
         });
       });
-    },
-
-    ready : function () {
-      if (currentState != STATE.NOT_READY) {
-        console.log('wrong state');
-        return;
-      }
-      currentState = STATE.READY;
-      socket.emit('ready', {playerID : getPlayerID()});
-      $("#status").html("Hang tight, someone's joining.");
-      $("#ready-button").attr('disabled', 'disabled');
-    },
-
-    rememberPlayerID : function (playerID) {
-      localStorage[urlParams['name']] = playerID;
     },
 
     ready : function () {

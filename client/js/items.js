@@ -63,14 +63,6 @@ Item.prototype.objectForUpdate = function () {
   return {location : this.location};
 }
 
-Item.prototype.objectForUpdate = function () {
-  return {location : this.location};
-}
-
-Item.prototype.objectForUpdate = function () {
-  return {location : this.location};
-}
-
 Item.prototype.collide = function (anotherItem) {
   var r1 = {
     left : this.location.x,
@@ -163,7 +155,7 @@ var Soldier = function(options) {
   this.speed = options.speed; // pixel per second
   this.lastMove = Date.now();
   this.lastAttack = Date.now();
-  this.target = Player.fromId(options.target).castle;
+  this.target = (Player.fromId(options.target)||{}).castle;
 
   var sprite = this.getSprite()
   sprite.loop = true;
@@ -223,6 +215,7 @@ Soldier.prototype.animateSprite = function () {
 }
 
 Soldier.prototype.shouldCollideItem = function (item) {
+  if (item instanceof Tower) return true;
   if (!(item instanceof Soldier)) return true; // wall or castle
   // it is soldier
   return false;
@@ -230,6 +223,7 @@ Soldier.prototype.shouldCollideItem = function (item) {
 
 Soldier.prototype.shouldAttackItem = function (item) {
   if (item.owner === this.owner) return false;
+  if (item instanceof Tower) return true;
   if (item instanceof Soldier) return false;
   return true;
 }
@@ -353,26 +347,6 @@ var 小明 = function(options) {
   return Soldier.prototype.shouldAttackItem.apply(this, arguments);
 }
 
-小明.prototype.shouldCollideItem = function (item) {
-  if (item.owner === this.owner) return false;
-  return true;
-}
-
-小明.prototype.shouldAttackItem = function (item) {
-  if (item instanceof Soldier) return true;
-  return Soldier.prototype.shouldAttackItem.apply(this, arguments);
-}
-
-小明.prototype.shouldCollideItem = function (item) {
-  if (item.owner === this.owner) return false;
-  return true;
-}
-
-小明.prototype.shouldAttackItem = function (item) {
-  if (item instanceof Soldier) return true;
-  return Soldier.prototype.shouldAttackItem.apply(this, arguments);
-}
-
 /*end of siuming*/
 
 var Wall = function () {
@@ -437,4 +411,106 @@ Wall.createButtonSprite = function () {
   button.buttonMode = true;
   button.interactive = true;
   return button;
+}
+
+var Tower = function () {
+  Soldier.apply(this, arguments);
+  this.size = {
+    width : 47,
+    height : 46
+  };
+  this.speed = 0; // tower doesn't move
+  this.getSprite().fps = 3;
+  this.getSprite().playSequence([0,4]);
+}
+
+Tower.prototype = Object.create(Soldier.prototype);
+
+Tower.prototype.getImage = function () {
+  return ['img/mushroom30000.png',
+          'img/mushroom30000.png',
+          'img/mushroom30000.png',
+          'img/mushroom30000.png',
+          'img/mushroom30001.png'];
+};
+
+Tower.prototype.setSpriteTransfrom = function () {
+  if (!this.lastX)
+    this.lastX = this.location.x;
+
+  this.sprite.x = this.location.x;
+  this.sprite.y = this.location.y-32;
+  this.sprite.width = 64;
+  this.sprite.height = 64;
+  if (this.location.x - this.lastX >= 0){
+    this.sprite.scale.x = 1;
+    this.sprite.x -= 32;
+  }else{
+    this.sprite.scale.x = -1;
+    this.sprite.x += 32;
+  }
+
+  this.lastX = this.location.x;
+};
+
+Tower.objectForDeploy = function () {
+  return {
+    type : "tower",
+    location : {
+      x : 0,
+      y : 0
+    },
+    size : {
+      width : 50,
+      height: 50
+    },
+    speed : 50,
+    hp : 100,
+    fullHp : 100
+  };
+};
+
+Tower.createButtonSprite = function () {
+  var button = new PIXI.Sprite.fromImage("img/mushroom30000.png");
+  button.buttonMode = true;
+  button.interactive = true;
+  return button;
+}
+
+Tower.prototype.shouldAttackItem = function (item) {
+  if (item.owner === this.owner) return false;
+  return true;
+}
+
+Tower.prototype.animateSprite = function () {
+  var _this = this;
+  function animate () {
+    if (_this.hp <= 0) return; // if this thing is destroyed, stop
+    if (_this.stopAnimation) return;
+
+    var crashingItems = Stage.collisionItemsForItem(_this, {
+      x : _this.location.x - 50,
+      y : _this.location.y - 50
+    },
+    {
+      width : _this.size.width + 100,
+      height: _this.size.height + 100
+    });
+
+    if (_this.owner === Player.me && Date.now() - _this.lastAttack > 1000) {
+      // this item can attack now
+      _this.getSprite().playSequence([0,9]);
+      crashingItems
+      .filter(_this.shouldAttackItem.bind(_this))
+      .forEach(function (item) {
+        _this.attack(item);
+      });
+    }
+
+    _this.setSpriteTransfrom();
+    _this.lastMove = Date.now();
+
+    requestAnimationFrame(animate);
+  }
+  animate();
 }

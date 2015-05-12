@@ -11,7 +11,8 @@ var Room = function (name, lobby, io) {
   var prices = {
     "soldier" : 3,
     "siuming" : 10,
-    "wall" : 3
+    "wall" : 3,
+    "tower": 10
   };
 
   var _this = this;
@@ -54,6 +55,7 @@ var Room = function (name, lobby, io) {
           thisPlayer.state = Player.STATE.PLAYING;
           castles[thisPlayer.id] = thisPlayer.castle = _this.createItem({
             type : "castle",
+            owner : thisPlayer.id,
             location : {
               x : i == 0? 0 : 500,
               y : 300
