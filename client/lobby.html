@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Miniwar</title>
+    <link href="./css/lobby.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <div id="playerCount">
-      Loading...
+    <div id="main">
+        <div id="panel">
+            <div id="header">
+                <button type="button" id="newRoomButton">New room</button>
+                <div id="playerCount">Loading...</div>
+            </div>
+            <div id="rooms">
+                Loading...
+            </div>
+        </div>
     </div>
-
-    <div id="rooms">
-      Loading...
-    </div>
-
-    <button type="button" id="newRoomButton" >New room</button>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/lobby.js"></script>
+    <script src="./socket.io/socket.io.js"></script>
+    <script src="./js/lobby.js"></script>
   </body>
 </html>

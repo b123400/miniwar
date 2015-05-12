@@ -1,0 +1,85 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #00b349;
+    overflow: hidden;
+}
+
+#main {
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    width: 1290px;
+    height: 100vh;
+    max-height: 880px;
+    background: url('../img/lobby_bg.png') no-repeat right bottom;
+}
+
+#panel {
+    width: 810px;
+    height: 420px;
+    position: absolute;
+    left: 20px;
+    bottom: 15px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    padding: 15px 5px 0px 30px;
+    font-size: 16px;
+    font-family: "Lucida Console", Monaco, monospace;
+}
+
+.room {
+    float: left;
+    width: 180px;
+    height: 160px;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.room_name {
+    position: relative;
+    top: 122px;
+    width: 100%;
+    text-align: center;
+    font-size:  
+}
+
+.waiting {
+    background-image: url('../img/room_waiting.png');
+}
+
+.playing {
+    background-image: url('../img/room_playing.png');
+}
+
+#rooms {
+    height: 320px;
+    margin-right: -22px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#newRoomButton {
+    font-family: "Lucida Console", Monaco, monospace;
+    border: 1px solid #8AC007;
+    border-radius: 5px;
+    padding: 0.7% 2.0%;
+    cursor: pointer;
+    color:#8AC007;
+    background: rgba(239, 253, 221, 0.95);
+}
+
+#newRoomButton:hover, #newRoomButton:active {
+    color:#8AC007;
+    background-color:#ffffff;
+}
+
+#playerCount {
+    display: inline-block;
+    float: right;
+    margin-right: 30px;
+}
+
+#header {
+    padding: 10px 10px 20px 10px;
+}

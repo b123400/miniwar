@@ -6,9 +6,9 @@ socket.on('rooms', function (rooms) {
   var roomDiv = document.getElementById('rooms');
   roomDiv.innerHTML = "";
   var buttons = rooms.map(function(room){
-    var button = document.createElement('input');
-    button.type = "button";
-    button.value = room.name+" status: "+ (room.isPlaying? "playing" : "waiting");
+    var button = document.createElement('div');
+    button.className = "room " + (room.isPlaying ? "playing" : "waiting");
+    button.innerHTML = "<div class=\"room_name\">" + room.name + "</div>";
     button.addEventListener('click', function(){
       goToRoom(room.name);
     });
