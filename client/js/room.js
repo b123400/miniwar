@@ -34,20 +34,34 @@ var Stage = {
     this.mainStage.height = 600;
     this.baseStage.addChild(this.mainStage);
     
+    // panel
+    this.panel = new PIXI.Sprite.fromImage("img/panel.png");
+    this.panel.x = 0;
+    this.panel.y = 580;
+    this.panel.width = 800;
+    this.panel.height = 120;
+    this.baseStage.addChild(this.panel);
+    
     // cool-down indicator
-    this.coolDownLabel = new PIXI.Text("", {fill:'yellow'});
-    this.coolDownLabel.x = 100;
-    this.coolDownLabel.y = 650;
-    this.coolDownLabel.font = 'bold 30px Arial';
+    this.coolDownLabel = new PIXI.Text("OK", {fill: 'yellow', font: 'bold 26px Consolas'});
+    this.coolDownLabel.x = 80;
+    this.coolDownLabel.y = 585;
     this.coolDownLabel.width = 200;
     this.coolDownLabel.height = 100;
     this.baseStage.addChild(this.coolDownLabel);
+ 
+    // room name
+    this.roomNameLabel = new PIXI.Text(urlParams['name'], {fill: 'yellow', font: '26px Arial'});
+    this.roomNameLabel.x = this.renderer.width - 102;
+    this.roomNameLabel.y = 611;
+    this.roomNameLabel.width = 200;
+    this.roomNameLabel.height = 100;
+    this.baseStage.addChild(this.roomNameLabel);
 
     // money
-    this.moneyLabel = new PIXI.Text("$0", {fill:'yellow'});
-    this.moneyLabel.x = this.renderer.width - 100;
-    this.moneyLabel.y = 650;
-    this.moneyLabel.font = 'bold 30px Arial';
+    this.moneyLabel = new PIXI.Text("$0", {fill: 'yellow', font: 'bold 30px Arial'});
+    this.moneyLabel.x = this.renderer.width - 101;
+    this.moneyLabel.y = 660;
     this.moneyLabel.width = 200;
     this.moneyLabel.height = 100;
     this.baseStage.addChild(this.moneyLabel);
@@ -119,7 +133,7 @@ var Stage = {
 	  if (--Stage.coolDownSec > 0) {
 	      Stage.coolDownLabel.setText(Stage.coolDownSec);
 	  } else {
-	      Stage.coolDownLabel.setText("");
+	      Stage.coolDownLabel.setText("OK");
 	      clearInterval(timer);
 	  }
       }, 1000);
