@@ -43,10 +43,10 @@ Item.prototype.redrawBloodBar = function () {
   // blood
   var width = this.hp / this.fullHp * this.size.width;
   bloodBar.lineStyle(0, 0x000000);
-  if (this.owner == Player.me) {
+  if (this.owner == Player.me || this == Player.me.castle) {
     bloodBar.beginFill(0x00ff00, 1); // player's blood bar
   } else {
-    bloodBar.beginFill(0xff0000, 1); // enemy's blood bar
+    bloodBar.beginFill(0xff0000, 1); // opponents' blood bar
   }
   bloodBar.drawRect(0, 0, width, 5);
   bloodBar.endFill();

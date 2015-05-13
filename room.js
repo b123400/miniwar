@@ -52,11 +52,11 @@ var Room = function (name, lobby, io) {
       if (_this.playerCount == _this.getReadyPlayerCount()) {
         // everyone is ready
         var castles = {};
-        _this.players.forEach(function (thisPlayer, i){
+        _this.players.forEach(function (thisPlayer, i) {
           thisPlayer.state = Player.STATE.PLAYING;
           castles[thisPlayer.id] = thisPlayer.castle = _this.createItem({
             type : "castle",
-            // owner : thisPlayer.id,
+            owner : thisPlayer.id,
             location : {
               x : (i == 0) ? 0 : 736, // 800 - castle's width
               y : 250
@@ -69,7 +69,7 @@ var Room = function (name, lobby, io) {
             fullHp : 100
           }, thisPlayer);
         });
-        _this.players.forEach(function (thisPlayer){
+        _this.players.forEach(function (thisPlayer) {
           thisPlayer.money.lastConfirm = Date.now();
           thisPlayer.socket.emit("start",{
             playerCount : _this.players.length,
