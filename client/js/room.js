@@ -45,23 +45,26 @@ var Stage = {
         "tower": 10
     };
 
-    var itemsWithButton = [Soldier, Wall, 小明, Tower],
+    var itemsWithButton = [{class:Soldier, type:"soldier"}, 
+                           {class:Wall, type:"wall"}, 
+                           {class:小明, type:"siuming"},
+                           {class:Tower,type:"tower"}],
         lastX = 10,
         _this = this,
         selectedItemClass = null;
 
 
     itemsWithButton.forEach(function (itemClass) {
-      var button = itemClass.createButtonSprite();
+      var button = itemClass.class.createButtonSprite();
       button.x = lastX;
       button.y = 620;
       button.width = 64;
       lastX += 80;
       button.mouseup = function() {
-        selectedItemClass = itemClass;
+        selectedItemClass = itemClass.class;
       }
       
-      var moneyLabel = new PIXI.Text("$?", {fill:'yellow'});
+      var moneyLabel = new PIXI.Text("$"+prices[itemClass.type], {fill:'yellow'});
       moneyLabel.y = -30;
       moneyLabel.font = 'bold 30px Arial';
       moneyLabel.width = 200;

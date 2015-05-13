@@ -140,14 +140,14 @@ Item.prototype.animateSprite = function () {
 var Castle = function (options) {
   Item.apply(this,arguments);
   this.size = {
-    width : 51,
-    height : 65
+    width : 64,
+    height : 64
   };
 }
 Castle.prototype = Object.create(Item.prototype);
 
 Castle.prototype.getImage = function () {
-  return ['img/castle.png'];
+  return ['img/castle1.png'];
 }
 
 var Soldier = function(options) {
@@ -397,8 +397,8 @@ Wall.objectForDeploy = function () {
       y : 0
     },
     size : {
-      width : 50,
-      height: 50
+      width : 64,
+      height: 64
     },
     speed : 50,
     hp : 100,
@@ -420,18 +420,12 @@ var Tower = function () {
     height : 46
   };
   this.speed = 0; // tower doesn't move
-  this.getSprite().fps = 3;
-  this.getSprite().playSequence([0,4]);
 }
 
 Tower.prototype = Object.create(Soldier.prototype);
 
 Tower.prototype.getImage = function () {
-  return ['img/mushroom30000.png',
-          'img/mushroom30000.png',
-          'img/mushroom30000.png',
-          'img/mushroom30000.png',
-          'img/mushroom30001.png'];
+  return ['img/mushroom40000.png'];
 };
 
 Tower.prototype.setSpriteTransfrom = function () {
@@ -471,7 +465,7 @@ Tower.objectForDeploy = function () {
 };
 
 Tower.createButtonSprite = function () {
-  var button = new PIXI.Sprite.fromImage("img/mushroom30000.png");
+  var button = new PIXI.Sprite.fromImage("img/mushroom40000.png");
   button.buttonMode = true;
   button.interactive = true;
   return button;
