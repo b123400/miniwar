@@ -96,12 +96,16 @@ var Room = function (name, lobby, io) {
     });
 
     // This player wants to deploy something
-    // var lastDeploy = null;
+    var lastDeploy = null;
     socket.on('deploy', function (options) {
       if (thisPlayer.state !== Player.STATE.PLAYING) return;
 
       var now = Date.now();
-      // if (now - lastDeploy < 3000) return; // prevent deploy within 3 seconds
+      if (lastDeploy == null || now - lastDeploy >= 3000) {
+        lastDeploy = Date.now();
+      } else {
+        return; // prevent deploy within 3 seconds
+      }
 
       var price = prices[options.type];
       if (price === undefined) return; // not recognized type

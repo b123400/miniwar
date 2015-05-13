@@ -4,6 +4,13 @@ var Stage = {
   renderer : null,
   allItems : [],
   money : 0,
+  coolDownSec : 3,
+  prices: {
+	"soldier" : 3,
+	"siuming" : 10,
+	"wall" : 3,
+	"tower": 10
+  },
 
   setup : function () {
     // You can use either PIXI.WebGLRenderer or PIXI.CanvasRenderer
@@ -26,30 +33,35 @@ var Stage = {
     this.mainStage.width = 800;
     this.mainStage.height = 600;
     this.baseStage.addChild(this.mainStage);
+    
+    // cool-down indicator
+    this.coolDownLabel = new PIXI.Text("", {fill:'yellow'});
+    this.coolDownLabel.x = 100;
+    this.coolDownLabel.y = 650;
+    this.coolDownLabel.font = 'bold 30px Arial';
+    this.coolDownLabel.width = 200;
+    this.coolDownLabel.height = 100;
+    this.baseStage.addChild(this.coolDownLabel);
 
     // money
     this.moneyLabel = new PIXI.Text("$0", {fill:'yellow'});
-    this.moneyLabel.x = this.renderer.width - 300;
+    this.moneyLabel.x = this.renderer.width - 100;
     this.moneyLabel.y = 650;
     this.moneyLabel.font = 'bold 30px Arial';
     this.moneyLabel.width = 200;
     this.moneyLabel.height = 100;
     this.baseStage.addChild(this.moneyLabel);
+    
+    // current selected item
+    var selectedItemLabel = null;
 
     // deploy buttons
-
-    var prices = {
-        "soldier" : 3,
-        "siuming" : 10,
-        "wall" : 3,
-        "tower": 10
-    };
 
     var itemsWithButton = [{class:Soldier, type:"soldier"}, 
                            {class:Wall, type:"wall"}, 
                            {class:小明, type:"siuming"},
                            {class:Tower,type:"tower"}],
-        lastX = 10,
+        lastX = 200,
         _this = this,
         selectedItemClass = null;
 
@@ -62,9 +74,10 @@ var Stage = {
       lastX += 80;
       button.mouseup = function() {
         selectedItemClass = itemClass.class;
+	_this.updateSelectedItemLabel(selectedItemClass);
       }
       
-      var moneyLabel = new PIXI.Text("$"+prices[itemClass.type], {fill:'yellow'});
+      var moneyLabel = new PIXI.Text("$"+_this.prices[itemClass.type], {fill:'yellow'});
       moneyLabel.y = -30;
       moneyLabel.font = 'bold 30px Arial';
       moneyLabel.width = 200;
@@ -80,18 +93,15 @@ var Stage = {
       var position = event.getLocalPosition(_this.mainStage);
       options.location.x = position.x;
       options.location.y = position.y;
-
-      var price = prices[options.type];
+      
+      // check if player has enough money
+      var price = _this.prices[options.type];
       if (price === undefined || _this.money < price) {
-        return;
+	return;
       }
-      // ok go
-      _this.money -= price;
-      _this.redrawMoneyLabel();
+
       Socket.deployItem(options);
     };
-
-    
 
     requestAnimationFrame(animate);
 
@@ -99,6 +109,31 @@ var Stage = {
         _this.renderer.render(_this.baseStage);
         requestAnimationFrame(animate);
     }
+  },
+  
+  refreshCoolDownLabel : function () {
+      this.coolDownSec = 3;
+      this.coolDownLabel.setText(this.coolDownSec);
+      
+      var timer = setInterval(function () {
+	  if (--Stage.coolDownSec > 0) {
+	      Stage.coolDownLabel.setText(Stage.coolDownSec);
+	  } else {
+	      Stage.coolDownLabel.setText("");
+	      clearInterval(timer);
+	  }
+      }, 1000);
+  },
+  
+  updateSelectedItemLabel : function (selectedItemClass) {
+      if (this.selectedItemLabel) {
+	  this.baseStage.removeChild(this.selectedItemLabel);
+      }
+      this.selectedItemLabel = selectedItemClass.createButtonSprite();
+      this.selectedItemLabel.x = 20;
+      this.selectedItemLabel.y = 620;
+      this.selectedItemLabel.width = 64;
+      this.baseStage.addChild(this.selectedItemLabel);
   },
 
   redrawMoneyLabel : function () {
@@ -141,6 +176,7 @@ var Stage = {
         return thisItem;
       }
     }
+    return false;
   },
 
   collisionItemsForItem : function (item, location, size) {
@@ -277,6 +313,14 @@ var Socket = (function(){
 
       socket.on('deploy', function (options) {
         if (currentState !== STATE.PLAYING) return;
+	
+	Stage.refreshCoolDownLabel();
+	
+	// money deduction
+	var price = Stage.prices[options.type];
+	Stage.money -= price;
+	Stage.redrawMoneyLabel();
+	
         Stage.addItem(options);
       });
 
