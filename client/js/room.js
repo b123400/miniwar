@@ -317,9 +317,11 @@ var Socket = (function(){
 	Stage.refreshCoolDownLabel();
 	
 	// money deduction
-	var price = Stage.prices[options.type];
-	Stage.money -= price;
-	Stage.redrawMoneyLabel();
+	if (options.owner == getPlayerID()) {
+	    var price = Stage.prices[options.type];
+	    Stage.money -= price;
+	    Stage.redrawMoneyLabel();
+	}
 	
         Stage.addItem(options);
       });

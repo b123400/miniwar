@@ -56,10 +56,10 @@ var Room = function (name, lobby, io) {
           thisPlayer.state = Player.STATE.PLAYING;
           castles[thisPlayer.id] = thisPlayer.castle = _this.createItem({
             type : "castle",
-            owner : thisPlayer.id,
+            // owner : thisPlayer.id,
             location : {
-              x : i == 0? 0 : 500,
-              y : 300
+              x : (i == 0) ? 0 : 736, // 800 - castle's width
+              y : 250
             },
             size: {
               width : 50,
@@ -114,6 +114,7 @@ var Room = function (name, lobby, io) {
 
       // if arrived here, can deploy
       thisPlayer.money.lastValue -= price;
+      thisPlayer.updateMoney();
 
       options = _this.createItem(options, thisPlayer);
 
@@ -177,7 +178,7 @@ var Room = function (name, lobby, io) {
         _this.destroyItem(target);
         if(target.type == "castle"){
           _this.players.forEach(function(p){
-            p.state = Player.STATE.ENDED
+            p.state = Player.STATE.ENDED;
           });
           io.emit('end', {winner: attacker.owner});
           lobby.removeRoom(_this);
@@ -289,7 +290,7 @@ Player.STATE = {
 };
 
 Player.prototype.updateMoney = function () {
-  this.money.lastValue = (Date.now() - this.money.lastConfirm) / 1000 * this.money.increaseRate;
+  this.money.lastValue += (Date.now() - this.money.lastConfirm) / 1000 * this.money.increaseRate;
   this.money.lastConfirm = Date.now();
 }
 
