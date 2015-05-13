@@ -44,6 +44,7 @@ var Room = function (name, lobby, io) {
           })
           // sync all players
           _this.syncAllPlayers();
+          lobby.roomStateChanged(_this);
           return;
         }
       }
@@ -88,11 +89,11 @@ var Room = function (name, lobby, io) {
         _this.players.splice(_this.players.indexOf(thisPlayer), 1); // remove this player
       }
       // When everyone is gone
-      if (_this.getPlayerCount(Player.STATE.PLAYING).length == 0) {
+      if (_this.players.length == 0 || _this.players.length == _this.getPlayerCount(Player.STATE.RECONNECTING)) {
         lobby.removeRoom(_this);
       }
+      lobby.roomStateChanged(_this);
     });
-
 
     // This player wants to deploy something
     // var lastDeploy = null;

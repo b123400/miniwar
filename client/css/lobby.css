@@ -33,7 +33,6 @@ body {
     width: 180px;
     height: 160px;
     margin-right: 20px;
-    cursor: pointer;
 }
 
 .room_name {
@@ -46,6 +45,7 @@ body {
 
 .waiting {
     background-image: url('../img/room_waiting.png');
+    cursor: pointer;
 }
 
 .playing {
@@ -65,13 +65,13 @@ body {
     border-radius: 5px;
     padding: 0.7% 2.0%;
     cursor: pointer;
-    color:#8AC007;
+    color: #8AC007;
     background: rgba(239, 253, 221, 0.95);
 }
 
 #newRoomButton:hover, #newRoomButton:active {
-    color:#8AC007;
-    background-color:#ffffff;
+    color: #8AC007;
+    background-color: #FFFFFF;
 }
 
 #playerCount {

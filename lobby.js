@@ -1,7 +1,7 @@
 var playerCount = 0;
 var roomCount = 0;
 var rooms = [];
-var Room = require('./room')
+var Room = require('./room');
 
 Lobby = function (rootIo) {
   var io = rootIo.of('/lobby');
@@ -28,9 +28,12 @@ Lobby = function (rootIo) {
   });
 
   function allRooms() {
+    return rooms;
+    /*
     return rooms.filter(function(r){
       return !r.toJSON().isPlaying;
     });
+    */
   }
 
   Lobby.removeRoom = function(room) {

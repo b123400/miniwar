@@ -9,9 +9,11 @@ socket.on('rooms', function (rooms) {
     var button = document.createElement('div');
     button.className = "room " + (room.isPlaying ? "playing" : "waiting");
     button.innerHTML = "<div class=\"room_name\">" + room.name + "</div>";
-    button.addEventListener('click', function(){
-      goToRoom(room.name);
-    });
+    if (!room.isPlaying) {
+      button.addEventListener('click', function(){
+        goToRoom(room.name);
+      });
+    }
     return button;
   });
   buttons.forEach(function(button){
