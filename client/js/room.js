@@ -4,6 +4,7 @@ var Stage = {
   renderer : null,
   allItems : [],
   money : 0,
+  myCastleX : 0, // for deployment area boundary, temporarily only x direction is handled for supporting two players in a room
   coolDownSec : 3,
   prices: {
 	"soldier" : 3,
@@ -107,6 +108,11 @@ var Stage = {
       var position = event.getLocalPosition(_this.mainStage);
       options.location.x = position.x;
       options.location.y = position.y;
+      
+      // check if it is in player's deployment area
+      if (Math.abs(position.x - _this.myCastleX) > 336) { // stage's width / 2 - castle's width / 2 - item's width / 2
+	return;
+      }
       
       // check if player has enough money
       var price = _this.prices[options.type];
@@ -280,7 +286,8 @@ var Socket = (function(){
         for (var key in Player.allPlayers) {
           Stage.addItem(Player.allPlayers[key].castle); // add to stage;
         }
-
+	
+	Stage.myCastleX = Player.me.castle.location.x;
       });
 
       socket.on('end', function (options) {
