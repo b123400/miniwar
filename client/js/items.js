@@ -43,7 +43,7 @@ Item.prototype.redrawBloodBar = function () {
   // blood
   var width = this.hp / this.fullHp * this.size.width;
   bloodBar.lineStyle(0, 0x000000);
-  if (this.owner == Player.me || this == Player.me.castle) {
+  if (this.owner === Player.me || this === Player.me.castle) {
     bloodBar.beginFill(0x00ff00, 1); // player's blood bar
   } else {
     bloodBar.beginFill(0xff0000, 1); // opponents' blood bar
@@ -227,7 +227,7 @@ Soldier.prototype.shouldCollideItem = function (item) {
 }
 
 Soldier.prototype.shouldAttackItem = function (item) {
-  if (item.owner === this.owner) return false;
+  if (item.owner === this.owner || item === Player.me.castle) return false;
   if (item instanceof Tower) return true;
   if (item instanceof Soldier) return false;
   return true;
@@ -477,7 +477,7 @@ Tower.createButtonSprite = function () {
 }
 
 Tower.prototype.shouldAttackItem = function (item) {
-  if (item.owner === this.owner) return false;
+  if (item.owner === this.owner || item === Player.me.castle) return false;
   return true;
 }
 
