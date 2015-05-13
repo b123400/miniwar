@@ -131,6 +131,8 @@ var Room = function (name, lobby, io) {
       var attacker = _this.items[options.itemID];
       var target = _this.items[options.targetID];
 
+      if (!attacker || !target) return;
+
       var lastAttack = lastAttackRecords[attacker.uuid];
 
       // ignore too-frequent attack
