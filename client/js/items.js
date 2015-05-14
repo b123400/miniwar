@@ -199,8 +199,13 @@ Soldier.prototype.animateSprite = function () {
     collidedItems = crashingItems.filter(_this.shouldCollideItem.bind(_this));
 
     if (!collidedItems.length) {
+      if (_this.location.x > targetLocation.x) {
+        _this.getSprite().scale.x = -1;
+      }
+      
       _this.location = targetLocation;
     }
+
     if (_this.owner === Player.me && Date.now() - _this.lastAttack > 1000) {
       // this item can attack now
       _this.getSprite().playSequence([0,9]);
