@@ -134,17 +134,17 @@ var Stage = {
   },
   
   refreshCoolDownLabel : function () {
-      this.coolDownSec = 3;
+      this.coolDownSec = 3; // set cool-down time here 3*200 = 600ms
       this.coolDownLabel.setText(this.coolDownSec);
       
       var timer = setInterval(function () {
-    if (--Stage.coolDownSec > 0) {
-        Stage.coolDownLabel.setText(Stage.coolDownSec);
-    } else {
-        Stage.coolDownLabel.setText("OK");
-        clearInterval(timer);
-    }
-      }, 1000);
+	  if (--Stage.coolDownSec > 0) {
+	      Stage.coolDownLabel.setText(Stage.coolDownSec);
+	  } else {
+	      Stage.coolDownLabel.setText("OK");
+	      clearInterval(timer);
+	  }
+      }, 200);
   },
   
   updateSelectedItemLabel : function (selectedItemClass) {

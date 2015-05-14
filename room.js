@@ -102,10 +102,10 @@ var Room = function (name, lobby, io) {
       if (thisPlayer.state !== Player.STATE.PLAYING) return;
 
       var now = Date.now();
-      if (lastDeploy == null || now - lastDeploy >= 3000) {
+      if (lastDeploy == null || now - lastDeploy >= 600) {
         lastDeploy = Date.now();
       } else {
-        return; // prevent deploy within 3 seconds
+        return; // prevent deploy within 0.6 seconds
       }
 
       var price = prices[options.type];
