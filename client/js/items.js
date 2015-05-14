@@ -364,7 +364,7 @@ var Aeroplane = function(options) {
 Aeroplane.prototype = Object.create(Soldier.prototype);
 
 Aeroplane.createButtonSprite = function () {
-  var button = new PIXI.Sprite.fromImage("img/aeroplane.png");
+  var button = new PIXI.Sprite.fromImage("img/plane50000.png");
   button.buttonMode = true;
   button.interactive = true;
   return button;
@@ -389,7 +389,7 @@ Aeroplane.objectForDeploy = function () {
 }
 
 Aeroplane.prototype.getImage = function () {
-  return ['img/aeroplane.png'];
+  return ['img/plane50000.png', 'img/plane50001.png'];
 };
 
 Aeroplane.prototype.shouldCollideItem = function (item) {
