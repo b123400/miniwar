@@ -398,6 +398,7 @@ Aeroplane.prototype.getImage = function () {
 };
 
 Aeroplane.prototype.shouldCollideItem = function (item) {
+  if (item === this.target) return true;
   return false;
 }
 
