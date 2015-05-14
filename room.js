@@ -12,7 +12,8 @@ var Room = function (name, lobby, io) {
     "soldier" : 3,
     "siuming" : 10,
     "wall" : 3,
-    "tower": 10
+    "tower": 10,
+    "aeroplane" : 20
   };
 
   var _this = this;

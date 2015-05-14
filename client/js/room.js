@@ -7,10 +7,11 @@ var Stage = {
   myCastleX : 0, // for deployment area boundary, temporarily only x direction is handled for supporting two players in a room
   coolDownSec : 3,
   prices: {
-	"soldier" : 3,
-	"siuming" : 10,
-	"wall" : 3,
-	"tower": 10
+    "soldier" : 3,
+    "siuming" : 10,
+    "wall" : 3,
+    "tower": 10,
+    "aeroplane": 20
   },
 
   setup : function () {
@@ -75,7 +76,8 @@ var Stage = {
     var itemsWithButton = [{class:Soldier, type:"soldier"}, 
                            {class:Wall, type:"wall"}, 
                            {class:小明, type:"siuming"},
-                           {class:Tower,type:"tower"}],
+                           {class:Tower,type:"tower"},
+                           {class:Aeroplane,type:"aeroplane"}],
         lastX = 200,
         _this = this,
         selectedItemClass = null;
@@ -89,7 +91,7 @@ var Stage = {
       lastX += 80;
       button.mouseup = function() {
         selectedItemClass = itemClass.class;
-	_this.updateSelectedItemLabel(selectedItemClass);
+        _this.updateSelectedItemLabel(selectedItemClass);
       }
       
       var moneyLabel = new PIXI.Text("$"+_this.prices[itemClass.type], {fill:'yellow'});
@@ -111,13 +113,13 @@ var Stage = {
       
       // check if it is in player's deployment area
       if (Math.abs(position.x - _this.myCastleX) > 336) { // stage's width / 2 - castle's width / 2 - item's width / 2
-	return;
+  return;
       }
       
       // check if player has enough money
       var price = _this.prices[options.type];
       if (price === undefined || _this.money < price) {
-	return;
+  return;
       }
 
       Socket.deployItem(options);
@@ -136,18 +138,18 @@ var Stage = {
       this.coolDownLabel.setText(this.coolDownSec);
       
       var timer = setInterval(function () {
-	  if (--Stage.coolDownSec > 0) {
-	      Stage.coolDownLabel.setText(Stage.coolDownSec);
-	  } else {
-	      Stage.coolDownLabel.setText("OK");
-	      clearInterval(timer);
-	  }
+    if (--Stage.coolDownSec > 0) {
+        Stage.coolDownLabel.setText(Stage.coolDownSec);
+    } else {
+        Stage.coolDownLabel.setText("OK");
+        clearInterval(timer);
+    }
       }, 1000);
   },
   
   updateSelectedItemLabel : function (selectedItemClass) {
       if (this.selectedItemLabel) {
-	  this.baseStage.removeChild(this.selectedItemLabel);
+    this.baseStage.removeChild(this.selectedItemLabel);
       }
       this.selectedItemLabel = selectedItemClass.createButtonSprite();
       this.selectedItemLabel.x = 20;
@@ -222,6 +224,8 @@ var Stage = {
         return new 小明(options);
       case "tower":
         return new Tower(options);
+      case "aeroplane":
+        return new Aeroplane(options);
         break;
     }
     return undefined;
@@ -286,8 +290,8 @@ var Socket = (function(){
         for (var key in Player.allPlayers) {
           Stage.addItem(Player.allPlayers[key].castle); // add to stage;
         }
-	
-	Stage.myCastleX = Player.me.castle.location.x;
+  
+  Stage.myCastleX = Player.me.castle.location.x;
       });
 
       socket.on('end', function (options) {
@@ -334,16 +338,16 @@ var Socket = (function(){
 
       socket.on('deploy', function (options) {
         if (currentState !== STATE.PLAYING) return;
-	
-	Stage.refreshCoolDownLabel();
-	
-	// money deduction
-	if (options.owner == getPlayerID()) {
-	    var price = Stage.prices[options.type];
-	    Stage.money -= price;
-	    Stage.redrawMoneyLabel();
-	}
-	
+  
+  Stage.refreshCoolDownLabel();
+  
+  // money deduction
+  if (options.owner == getPlayerID()) {
+      var price = Stage.prices[options.type];
+      Stage.money -= price;
+      Stage.redrawMoneyLabel();
+  }
+  
         Stage.addItem(options);
       });
 

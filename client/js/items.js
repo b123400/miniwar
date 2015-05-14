@@ -235,7 +235,7 @@ Soldier.prototype.shouldAttackItem = function (item) {
 
 Soldier.prototype.attack = function (anotherItem) {
   console.log(this.uuid, 'attack', anotherItem.uuid)
-  Socket.attackItem(this, anotherItem, 10);
+  Socket.attackItem(this, anotherItem, this.attackDamage || 10);
   this.lastAttack = Date.now();
 }
 
@@ -353,6 +353,53 @@ var 小明 = function(options) {
 }
 
 /*end of siuming*/
+
+var Aeroplane = function(options) {
+  Soldier.apply(this, arguments);
+  this.getSprite().fps = 5;
+  this.getSprite().playSequence([0,1]);
+  this.attackDamage = 3;
+};
+
+Aeroplane.prototype = Object.create(Soldier.prototype);
+
+Aeroplane.createButtonSprite = function () {
+  var button = new PIXI.Sprite.fromImage("img/aeroplane.png");
+  button.buttonMode = true;
+  button.interactive = true;
+  return button;
+}
+
+Aeroplane.objectForDeploy = function () {
+  return {
+    type : "aeroplane",
+    location : {
+      x : Player.me.castle.location.x,
+      y : Player.me.castle.location.y + 100
+    },
+    size : {
+      width : 11,
+      height: 37
+    },
+    speed : 300,
+    hp : 1,
+    fullHp : 1,
+    target : Player.getRandomEnemy().id
+  };
+}
+
+Aeroplane.prototype.getImage = function () {
+  return ['img/aeroplane.png'];
+};
+
+Aeroplane.prototype.shouldCollideItem = function (item) {
+  return false;
+}
+
+Aeroplane.prototype.shouldAttackItem = function (item) {
+  if (item.owner === this.owner || item === Player.me.castle) return false;
+  return true;
+}
 
 var Wall = function () {
   Item.apply(this, arguments);
