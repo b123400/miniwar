@@ -201,6 +201,8 @@ Soldier.prototype.animateSprite = function () {
     if (!collidedItems.length) {
       if (_this.location.x > targetLocation.x) {
         _this.getSprite().scale.x = -1;
+      } else {
+        _this.getSprite().scale.x = 1;
       }
       
       _this.location = targetLocation;
@@ -265,19 +267,18 @@ Soldier.prototype.getImage = function () {
 };
 
 Soldier.prototype.setSpriteTransfrom = function () {
-  if (!this.lastX)
+  if (!this.lastX) {
     this.lastX = this.location.x;
+  }
 
   this.sprite.x = this.location.x;
   this.sprite.y = this.location.y-32;
-  this.sprite.width = 64;
-  this.sprite.height = 64;
-  if (this.location.x - this.lastX >= 0){
-    this.sprite.scale.x = 1;
-    this.sprite.x -= 32;
-  }else{
+  if (this.location.x < this.lastX) {
     this.sprite.scale.x = -1;
     this.sprite.x += 32;
+  } else if (this.location.x > this.lastX) {
+    this.sprite.scale.x = 1;
+    this.sprite.x -= 32;
   }
 
   this.lastX = this.location.x;
@@ -353,6 +354,7 @@ var 小明 = function(options) {
 }
 
 小明.prototype.shouldAttackItem = function (item) {
+  if (item.owner === this.owner) return false;
   if (item instanceof Soldier) return true;
   return Soldier.prototype.shouldAttackItem.apply(this, arguments);
 }
@@ -434,14 +436,12 @@ Wall.prototype.setSpriteTransfrom = function () {
 
   this.sprite.x = this.location.x;
   this.sprite.y = this.location.y-32;
-  this.sprite.width = 64;
-  this.sprite.height = 64;
-  if (this.location.x - this.lastX >= 0){
-    this.sprite.scale.x = 1;
-    this.sprite.x -= 32;
-  }else{
+  if (this.location.x < this.lastX) {
     this.sprite.scale.x = -1;
     this.sprite.x += 32;
+  } else if (this.location.x > this.lastX) {
+    this.sprite.scale.x = 1;
+    this.sprite.x -= 32;
   }
 
   this.lastX = this.location.x;
@@ -492,14 +492,12 @@ Tower.prototype.setSpriteTransfrom = function () {
 
   this.sprite.x = this.location.x;
   this.sprite.y = this.location.y-32;
-  this.sprite.width = 64;
-  this.sprite.height = 64;
-  if (this.location.x - this.lastX >= 0){
-    this.sprite.scale.x = 1;
-    this.sprite.x -= 32;
-  }else{
+  if (this.location.x < this.lastX) {
     this.sprite.scale.x = -1;
     this.sprite.x += 32;
+  } else if (this.location.x > this.lastX) {
+    this.sprite.scale.x = 1;
+    this.sprite.x -= 32;
   }
 
   this.lastX = this.location.x;
